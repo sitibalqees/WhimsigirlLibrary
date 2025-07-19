@@ -27,6 +27,24 @@ public class BookController extends HttpServlet {
         String action = request.getParameter("action");
 
         try {
+        	if ("getBookById".equals(action)) {
+                int bookId = Integer.parseInt(request.getParameter("bookId"));
+                Book book = BookDAO.getBookById(bookId);
+                response.setContentType("application/json");
+                if (book != null) {
+                    String json = String.format(
+                        "{\"title\":\"%s\",\"authorName\":\"%s\",\"isbn\":\"%s\",\"category\":\"%s\"}",
+                        escapeJson(book.getTitle()),
+                        escapeJson(book.getAuthorName()),
+                        escapeJson(String.valueOf(book.getIsbn())),
+                        escapeJson(book.getCategory())
+                    );
+                    response.getWriter().write(json);
+                } else {
+                    response.getWriter().write("{}");
+                }
+                return;
+            }
             switch (action) {
                 case "list":
                     listBooks(request, response);
@@ -46,14 +64,31 @@ public class BookController extends HttpServlet {
         }
     }
 
+    private String escapeJson(String value) {
+        if (value == null) return "";
+        return value.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r");
+    }
+	
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
         String bookId = request.getParameter("bookId");
+        System.out.println("doPost: action=" + action + ", bookId=" + bookId);
         try {
-            if (bookId == null || bookId.isEmpty())
-                addBook(request, response);
-            else
-                updateBook(request, response);
-
+            if ("delete".equals(action)) {
+                if (bookId != null && !bookId.isEmpty()) {
+                    deleteBook(request, response);
+                } else {
+                    // Optionally, handle error: bookId missing for delete
+                    response.getWriter().write("Book ID is required for deletion.");
+                }
+            } else {
+                if (bookId == null || bookId.isEmpty()) {
+                    addBook(request, response);
+                } else {
+                    updateBook(request, response);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -68,11 +103,15 @@ public class BookController extends HttpServlet {
     }
 
     // 2. DELETE a book
-    private void deleteBook(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+    private void deleteBook(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         int bookId = Integer.parseInt(request.getParameter("bookId"));
         BookDAO.deleteBook(bookId);
         System.out.println("Book deleted successfully.");
-        response.sendRedirect("BookController?action=list");
+        // Set a request attribute to indicate success
+        request.setAttribute("deleteSuccess", true);
+        // Forward back to RemoveBook.jsp
+        RequestDispatcher dispatcher = request.getRequestDispatcher("RemoveBook.jsp");
+        dispatcher.forward(request, response);
     }
 
     // 3. SHOW edit form for a book

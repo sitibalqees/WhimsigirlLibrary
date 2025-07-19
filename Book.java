@@ -1,8 +1,5 @@
 package library.model;
 
-/*
- * Author: FES (March 2025)
- */
 
 import java.io.Serializable;
 

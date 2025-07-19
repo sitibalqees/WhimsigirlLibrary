@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import library.model.Book;
-import library.connection.ConnectionManager;
+import library.connection.connectionManager;
 
 public class BookDAO {
     private static Connection connection = null;
@@ -16,7 +16,7 @@ public class BookDAO {
     public static void addBook(Book book) throws SQLException {
         try {
             String query = "INSERT INTO book (Title, AuthorName, synopsis, Category, ISBN, Publisher, PublishYear, Price, Quantity, ReserveID, fineID, availability) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            connection = ConnectionManager.getConnection();
+            connection = connectionManager.getConnection();
             PreparedStatement ps = connection.prepareStatement(query);
 
             ps.setString(1, book.getTitle());
@@ -53,7 +53,7 @@ public class BookDAO {
 
         try {
             String query = "SELECT * FROM book";
-            connection = ConnectionManager.getConnection();
+            connection = connectionManager.getConnection();
             PreparedStatement ps = connection.prepareStatement(query);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -88,7 +88,7 @@ public class BookDAO {
 
         try {
             String query = "SELECT * FROM book WHERE BookID = ?";
-            connection = ConnectionManager.getConnection();
+            connection = connectionManager.getConnection();
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setInt(1, bookId);
             ResultSet rs = ps.executeQuery();
@@ -123,7 +123,7 @@ public class BookDAO {
     public static void updateBook(Book book) throws SQLException {
         try {
             String query = "UPDATE book SET Title=?, AuthorName=?, synopsis=?, Category=?, ISBN=?, Publisher=?, PublishYear=?, Price=?, Quantity=?, ReserveID=?, fineID=?, availability=? WHERE BookID=?";
-            connection = ConnectionManager.getConnection();
+            connection = connectionManager.getConnection();
             PreparedStatement ps = connection.prepareStatement(query);
 
             ps.setString(1, book.getTitle());
@@ -159,7 +159,7 @@ public class BookDAO {
     public static void deleteBook(int bookId) throws SQLException {
         try {
             String query = "DELETE FROM book WHERE BookID = ?";
-            connection = ConnectionManager.getConnection();
+            connection = connectionManager.getConnection();
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setInt(1, bookId);
             ps.executeUpdate();
