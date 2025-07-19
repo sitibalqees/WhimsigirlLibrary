@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Books</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e7d3d3;
+            margin: 0;
+        }
+        
+        /*Top navigation bar styling*/
+        .navbar {
+            background-color:#3c0d0d;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            height: 60px;
+            justify-content: space-between;
+        }
+        /* Logo Styling */
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between the logo and text */
+    text-decoration: none; /* Remove underline */
+}
+
+.logo-image {
+    height: 40px; /* Adjust size of the logo */
+    width: auto; /* Maintain aspect ratio */
+    border-radius: 50%; /* Optional: make the logo circular */
+}
+
+.logo-text {
+    color: var(--white-color); /* Ensure text matches your color scheme */
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+}
+
+
+*{
+	margin: 0;
+	padding:0;
+	box-sizing:border-box;
+	font-family: "Poppins", sans-serif;
+}
+        .navbar .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        /*Menu links container*/
+        .navbar .menu {
+            display: flex;
+            gap: 32px;
+        }
+        .navbar .menu a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .navbar .menu a:hover, .navbar .menu a.active {
+            color: #ffd7d7;
+            text-decoration: underline;
+        }
+        
+        /*Main page content container*/
+        .main-content {
+            max-width: 1100px;
+            margin: 32px auto;
+            background: #d9bebe;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.08);
+            padding: 32px 40px;
+        }
+        .search-section {
+            margin-bottom: 32px;
+        }
+        .search-section h2 {
+            color: #7c5a1f;
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+        .search-bar {
+            display: flex;
+            gap: 16px;
+        }
+        .search-bar input[type="text"] {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .search-bar button {
+            padding: 12.8px 32px;
+            background: #8b3b3b;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .search-bar button:hover {
+            background: #0056b3;
+        }
+        .recommend-section {
+            margin-top: 32px;
+        }
+        .recommend-section h3 {
+            color: #7c5a1f;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+        .book-cards {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .book-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 16px 19.2px;
+            width: 180px;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .book-card .book-title {
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 8px;
+        }
+        .book-card .book-author {
+            color: #555;
+            font-size: 15.2px;
+        }
+        
+		.book-cover {
+		    width: 100%;
+		    height: 140px;
+		    object-fit: cover;
+		    border-radius: 6px 6px 0 0;
+		    margin-bottom: 8px;
+		    background: #eee;
+		}
+    </style>
+</head>
+<body>
+  <!-- Users Navigation Bar -->
+    <div class="navbar">
+        <a href="#" class="nav-logo">
+			<img src="image/Whimsigirl Logo.jpg" alt="Library Logo" class="logo-image">
+				<h2 class ="logo-text">Whimsigirl Library</h2>
+			</a>
+        <div class="menu">
+            <a href="#">Home</a>
+            <a href="#" class="active">Search</a>
+            <a href="#">Reserve</a>
+            <a href="#">Issue</a>
+            <a href="#">Fine Payment</a>
+            <a href="#">Log Out</a>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="search-section">
+            <h2>Search for a Book</h2>
+            <form class="search-bar" action="#" method="GET">
+                <input type="text" name="query" placeholder="Enter book title, author, or keyword..." required>
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <div class="recommend-section">
+            <h3>Recommended Books</h3>
+            <div class="book-cards">
+                <div class="book-card">
+                	<img src="image/Malaysian Economy.png" alt=" The Malaysian Economy" class="book-cover">
+                    <div class="book-title">The Malaysian Economy</div>
+                    <div class="book-author">by Shankaran Nambiar</div>
+                </div>
+                <div class="book-card">
+                    <div class="book-title">My Dyslexia</div>
+                    <div class="book-author">by Philip Schultz</div>
+                </div>
+                <div class="book-card">
+                    <div class="book-title">Cast-Iron Cooking</div>
+                    <div class="book-author">by Rachael Narins</div>
+                </div>
+                <div class="book-card">
+                    <div class="book-title">The Awkward Human</div>
+                    <div class="book-author">by Adam Dachis</div>
+                </div>
+                <div class="book-card">
+                    <div class="book-title">From Naked Ape to Superspecies</div>
+                    <div class="book-author">by David Suzuki</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
