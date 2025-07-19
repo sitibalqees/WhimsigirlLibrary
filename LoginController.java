@@ -30,22 +30,28 @@ public class LoginController extends HttpServlet {
                     HttpSession session = request.getSession(true);
                     session.setAttribute("adminId", admin.getAdminId());
                     session.setAttribute("adminEmail", admin.getAdminEmail());
+                    // Optionally: session.setAttribute("adminName", admin.getAdminName());
                     response.sendRedirect("AdminDashboard.jsp");
+                    return;
                 } else {
                     request.setAttribute("errorMessage", "Invalid admin email or password. Please try again.");
                     request.getRequestDispatcher("Login.jsp").forward(request, response);
+                    return;
                 }
             } else {
                 // User login
                 User user = UserDAO.login(email, password);
                 if (user != null && user.isLoggedIn()) {
                     HttpSession session = request.getSession(true);
-                    session.setAttribute("UserID", user.getUserID());
-                    session.setAttribute("UserEmail", user.getUserEmail());
+                    session.setAttribute("userID", user.getUserID());
+                    session.setAttribute("userEmail", user.getUserEmail());
+                    session.setAttribute("userName", user.getUserName());
                     response.sendRedirect("HomePage.jsp");
+                    return;
                 } else {
                     request.setAttribute("errorMessage", "Invalid user email or password. Please try again.");
                     request.getRequestDispatcher("Login.jsp").forward(request, response);
+                    return;
                 }
             }
         } catch (Throwable ex) {
