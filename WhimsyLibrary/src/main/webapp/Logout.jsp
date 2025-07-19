@@ -9,7 +9,7 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      background-color:  #fdf9f5;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -60,7 +60,7 @@
 <body>
   <div class="logout-container">
     <h2>Are you sure you want to log out?</h2>
-    <form action="LogoutServlet" method="post">
+    <form action="LogoutController" method="get">
       <div class="button-group">
         <button type="submit" class="logout-btn">Yes</button>
         <button type="button" class="cancel-btn" onclick="window.history.back()">No</button>

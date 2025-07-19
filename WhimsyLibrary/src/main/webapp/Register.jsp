@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Join LibraryThing</title>
+  <title>Join Whimsigirl Library</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,7 +15,6 @@
       align-items: center;
       height: 100vh;
     }
-
     .form-container {
       background-color: #fdfaf7;
       padding: 30px;
@@ -23,41 +22,20 @@
       border-radius: 8px;
       width: 400px;
     }
-
     label {
       display: block;
       margin-bottom: 5px;
       font-weight: bold;
     }
-
     input[type="text"],
     input[type="email"],
-    input[type="password"],
-    select {
+    input[type="password"] {
       width: 100%;
       padding: 10px;
       margin-bottom: 15px;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-
-    .password-strength {
-      display: flex;
-      align-items: center;
-      font-size: 12px;
-      color: #666;
-      margin-top: -10px;
-      margin-bottom: 10px;
-    }
-
-    .bar {
-      height: 5px;
-      width: 25%;
-      background-color: #ddd;
-      margin-right: 3px;
-      border-radius: 2px;
-    }
-
     .submit-btn {
       width: 100%;
       padding: 12px;
@@ -68,60 +46,35 @@
       font-size: 16px;
       cursor: pointer;
     }
-
-    .or-join {
+    .error-message {
+      color: red;
       text-align: center;
-      margin: 20px 0 10px;
-      color: #666;
-    }
-
-    .facebook-join {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 5px;
-      color: #3b5998;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .facebook-join img {
-      width: 16px;
-      height: 16px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
   <div class="form-container">
-    <form>
+    <form action="RegisterController" method="post">
       <label for="username">Username</label>
-      <input type="text" id="username" name="username" />
+      <input type="text" id="username" name="username" required />
 
       <label for="password">Password</label>
-      <input type="password" id="password" name="password" />
-
-      <div class="password-strength">
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <span style="margin-left: 8px;">password strength</span>
-      </div>
-
-      <label for="confirm">Confirm Password</label>
-      <input type="password" id="confirm" name="confirm" />
+      <input type="password" id="password" name="password" required />
 
       <label for="email">Email</label>
-      <input type="email" id="email" name="email" />
-
-      <label for="type">Type</label>
-      <select id="type" name="type">
-        <option value="personal">personal</option>
-        <option value="organization">organization</option>
-      </select>
+      <input type="email" id="email" name="email" required />
 
       <button type="submit" class="submit-btn">Join Whimsigirl Library</button>
-
     </form>
+    <%
+      String errorMessage = (String) request.getAttribute("errorMessage");
+      if (errorMessage != null) {
+    %>
+      <div class="error-message"><%= errorMessage %></div>
+    <%
+      }
+    %>
   </div>
 </body>
-</html>>
+</html>

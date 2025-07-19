@@ -39,6 +39,16 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+    .role-group {
+      margin-bottom: 15px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    .role-group label {
+      font-weight: normal;
+      margin-bottom: 0;
+    }
     .sign-in-btn {
       width: 100%;
       padding: 10px;
@@ -49,25 +59,7 @@
       font-size: 16px;
       cursor: pointer;
     }
-    .or-signin {
-      text-align: center;
-      margin: 20px 0 10px;
-      color: #666;
-    }
-    .facebook-signin {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 5px;
-      color: #3b5998;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .facebook-signin img {
-      width: 16px;
-      height: 16px;
-    }
-    .forgot-link {
+    .forgot-link, .register-link {
       display: block;
       text-align: center;
       margin-top: 10px;
@@ -75,25 +67,48 @@
       color: #007bff;
       text-decoration: none;
     }
-    .forgot-link:hover {
+    .forgot-link:hover, .register-link:hover {
       text-decoration: underline;
+    }
+    .error-message {
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
   <div class="login-container">
-    <form>
-      <label for="username">Username</label>
-      <input type="text" id="username" name="username" />
+    <h2>Login</h2>
+    <form action="LoginController" method="post">
+     <div class="role-group">
+        <span style="font-weight:bold;">Login as:</span>
+        <input type="radio" id="user" name="role" value="user" checked>
+        <label for="user">User</label>
+        <input type="radio" id="admin" name="role" value="admin">
+        <label for="admin">Admin</label>
+      </div>
+    
+      <label for="email">Email</label>
+      <input type="text" id="email" name="email" required />
 
       <label for="password">Password</label>
-      <input type="password" id="password" name="password" />
+      <input type="password" id="password" name="password" required />
 
+  
       <button type="submit" class="sign-in-btn">Sign In</button>
 
- 
       <a href="#" class="forgot-link">Forgot username or password?</a>
+      <a href="Register.jsp" class="register-link">Not registered? Register here</a>
     </form>
+    <%
+      String errorMessage = (String) request.getAttribute("errorMessage");
+      if (errorMessage != null) {
+    %>
+      <div class="error-message"><%= errorMessage %></div>
+    <%
+      }
+    %>
   </div>
 </body>
 </html>
