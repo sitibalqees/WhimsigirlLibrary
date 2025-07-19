@@ -1,119 +1,10 @@
-<%@ page import="java.util.List" %>
-<%@ page import="library.model.Book" %>
-<%
-    List<Book> bookList = (List<Book>) request.getAttribute("books");
-%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Remove Book</title>
-
-</head>
-<body>
-    <header>
-        <nav class="navbar section-content">
-            <a href="#" class="nav-logo">
-                <img src="image/Whimsigirl Logo.jpg" alt="Library Logo" class="logo-image">
-                <h2 class="logo-text">Whimsigirl Library</h2>
-            </a>
-            <ul class="nav-menu">
-            	<li class="nav-item">
-                    <a href="#" class="nav-link">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">Add</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">Update</a>
-                </li>
-                <li class="nav-item">
-                    <a href="RemoveBook.java" class="nav-link">Remove</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">Return</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">Fine Record</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">Log Out</a>
-                </li>
-            </ul>
-        </nav>
-    </header>
-
-    <main class="deleteBook-page">
-    <div class="form-container">
-        <h2 class="form-title">Remove Book</h2>
-        <form action="BookController" method="POST" class="issue-form" id="deleteForm">
-            <input type="hidden" name="action" value="delete">
-            <div class="form-group">
-                <label for="bookId">Book Id</label>
-                <input type="text" id="bookId" name="bookId" autocomplete="off" required>
-            </div>
-            <div class="form-group">
-                <label for="Title">Title</label>
-                <input type="text" id="title" name="title" readonly>
-            </div>
-            <div class="form-group">
-                <label for="Author">Author</label>
-                <input type="text" id="author" name="author" readonly>
-            </div>
-            <div class="form-group">
-                <label for="ISBN">ISBN</label>
-                <input type="text" id="isbn" name="isbn" readonly>
-            </div>
-            <div class="form-group">
-                <label for="Category">Category</label>
-                <input type="text" id="category" name="category" readonly>
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="submit-btn" id="deleteButton">Delete Book</button>
-            </div>
-        </form>
-    </div>
-    
-    <% Boolean deleteSuccess = (Boolean) request.getAttribute("deleteSuccess"); %>
-	<% if (deleteSuccess != null && deleteSuccess) { %>
-	<script>
-    	window.onload = function() {
-        	alert("Book Successfully Deleted");
-    	}
-	</script>
-	<% } %>
-	
-</main>
-    <script>
-        // Auto-fill book details when Book ID is entered
-        document.getElementById('bookId').addEventListener('blur', function() {
-            var bookId = this.value.trim();
-            if (bookId) {
-                fetch('BookController?action=getBookById&bookId=' + encodeURIComponent(bookId))
-                    .then(response => response.json())
-                    .then(data => {
-                        document.getElementById('title').value = data.title || '';
-                        document.getElementById('author').value = data.authorName || '';
-                        document.getElementById('isbn').value = data.isbn || '';
-                        document.getElementById('category').value = data.category || '';
-                    });
-            } else {
-                document.getElementById('title').value = '';
-                document.getElementById('author').value = '';
-                document.getElementById('isbn').value = '';
-                document.getElementById('category').value = '';
-            }
-        });
-
-        // Confirmation dialog for delete
-        document.getElementById('deleteForm').addEventListener('submit', function(event) {
-            const userConfirmed = confirm("Are you sure you want to delete this book?");
-            if (!userConfirmed) {
-                event.preventDefault();
-            }
-        });
-    </script>
-</body>
+<title>Whimsigirl Library - Remove Book</title>
 <style>
 /* Import Google fonts */
 @import url('https://fonts.googleapis.com/css2?family=Miniver&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
@@ -327,4 +218,77 @@ header .navbar{
     background-color: #c44d4d;
 }
 </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar section-content">
+            <a href="#" class="nav-logo">
+                <img src="image/Whimsigirl Logo.jpg" alt="Library Logo" class="logo-image">
+                <h2 class="logo-text">Whimsigirl Library</h2>
+            </a>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link">Add</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">Update</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">Delete</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">Return</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">Fine Record</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">Log Out</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="deleteBook-page">
+        <div class="form-container">
+            <h2 class="form-title">Delete Book</h2>
+            <form action="#" method="POST" class="issue-form" id="deleteForm">
+                <div class="form-group">
+                    <label for="BookId">Book Id</label>
+                    <input type="text" id="bookId" name="bookId">
+                </div>
+                <div class="form-group">
+                    <label for="Title">Title</label>
+                    <input type="text" id="title" name="title">
+                </div>
+                <div class="form-group">
+                    <label for="Author">Author</label>
+                    <input type="text" id="author" name="author">
+                </div>
+                <div class="form-group">
+                    <label for="ISBN">ISBN</label>
+                    <input type="text" id="isbn" name="isbn">
+                </div>
+                <div class="form-group">
+                    <label for="Category">Category</label>
+                    <input type="text" id="category" name="category">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn" id="deleteButton">Delete Book</button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <script>
+        // Attach an event listener to the delete button
+        document.getElementById('deleteForm').addEventListener('submit', function(event) {
+            // Show a confirmation dialog
+            const userConfirmed = confirm("Are you sure you want to delete this book?");
+            // If the user cancels, prevent the form submission
+            if (!userConfirmed) {
+                event.preventDefault();
+            }
+        });
+    </script>
+</body>
 </html>
