@@ -1,5 +1,6 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -157,6 +158,7 @@ header .navbar{
     text-align: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease;
+    padding-bottom: 10px;
 }
 
 .book:hover {
@@ -176,13 +178,62 @@ header .navbar{
     font-size: 1rem;
     margin: 0.5rem 0;
     color: #333;
+    padding: 0 5px;
+    line-height: 1.3;
 }
 
 .book p {
     font-size: 0.9rem;
     color: #666;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
+    padding: 0 5px;
 }
+
+.book-category {
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.availability {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.available {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.not-available {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.no-books {
+    text-align: center;
+    color: #666;
+    font-size: 18px;
+    margin-top: 50px;
+    width: 100%;
+}
+
+.featured {
+    border: 2px solid #f3961c;
+}
+.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background:rgba(0,0,0,0.4);}
+.modal-content { background:#fff; margin:10% auto; padding:20px; border-radius:8px; width:90%; max-width:500px; position:relative;}
+.close { position:absolute; top:10px; right:20px; font-size:28px; font-weight:bold; cursor:pointer;}
+.btn-details { margin-top:10px; background:#007bff; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;}
+.btn-details:hover { background:#0056b3; }
+.btn-reserve { background:#28a745; color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;}
+.btn-reserve:hover { background:#218838; }
 </style>
 </head>
 <body>
@@ -194,124 +245,105 @@ header .navbar{
 			</a>
 			<ul class="nav-menu">
 				<li class ="nav-item">
-					<a href="#" class="nav-link">Home</a>
+					<a href="HomeController" class="nav-link">Home</a>
 				</li>
 				<li class ="nav-item">
-					<a href="#" class="nav-link">Search</a>
+					<a href="" class="nav-link">Search</a>
 				</li>
 				<li class ="nav-item">
-					<a href="#" class="nav-link">Reserve</a>
+					<a href="ReserveBook.jsp" class="nav-link">Reserve</a>
 				</li>
 				<li class ="nav-item">
-					<a href="#" class="nav-link">Issue</a>
+					<a href="IssueBook.jsp" class="nav-link">Issue</a>
 				</li>
 				<li class ="nav-item">
 					<a href="#" class="nav-link">Fine</a>
 				</li>
 				<li class ="nav-item">
-					<a href="Logout.jsp" class="nav-link">Log Out</a>
+					<a href="#" class="nav-link">Log Out</a>
 				</li>
 			</ul>
-		</nav>s
+		</nav>
 	</header>
 	
 	<div class="main-content">
         <h2>Welcome to Our Library!</h2>
         <p>Discover a wide range of books and resources. Use the menu above to navigate through the system.</p>
 
-        <!-- Categories -->
+        <!-- Non Fiction Books -->
         <div class="category">
-            <h2>Best of Non-Fiction</h2>
+            <h2>Non Fiction</h2>
             <div class="books">
-                <div class="book">
-                    <img src="image/Malaysian Economy.png" alt="Malaysian Economy">
-                    <h3>The Malaysian Economy</h3>
-                    <p>by Shankaran Nambiar</p>   
-                </div>
-                <div class="book">
-                    <img src="image/Investigating Sherlock.png" alt="Investigating Sherlock">
-                    <h3>Investigating Sherlock</h3>
-                    <p>by Nikki Stafford</p>
-                </div>
-                <div class="book">
-                    <img src="image/A Day with the Prophet.png" alt="A Day with the Prophet">
-                    <h3>A Day with the Prophet</h3>
-                    <p>by Ahmad Von Denffer</p>
-                </div>
-                <div class="book">
-                    <img src="image/The Jimmy Choo Story.png" alt="The Jimmy Choo Story">
-                    <h3>The Jimmy Choo Story</h3>
-                    <p>by Lauren Goldstein Crowe</p>
-                </div>
-                <div class="book">
-                    <img src="image/How Star Wars Conquered the Universe.png" alt="How Star Wars Conquered the Universe">
-                    <h3>How Star Wars Conquered the Universe</h3>
-                    <p>by Chris Taylor</p>
-                </div>
+                <c:forEach var="book" items="${books}">
+                    <c:if test="${fn:toLowerCase(book.category) eq 'non fiction'}">
+                        <div class="book">
+    						<img src="image?bookId=${book.bookId}" alt="${book.title}">
+    						<h3>${book.title}</h3>
+    						<p>by ${book.authorName}</p>
+    						<c:if test="${book.availability == 1}">
+        						<span class="availability available">Available</span>
+    						</c:if>
+    						<c:if test="${book.availability == 0}">
+        						<span class="availability not-available">Not Available</span>
+    						</c:if>
+    						<a href="BookController?action=fullDetails&bookId=${book.bookId}" class="btn-details" style="margin-top:8px;display:inline-block;">View Full Details</a>
+						</div>
+                    </c:if>
+                </c:forEach>
             </div>
         </div>
 
-        <div class="category">
-            <h2>Recently Added</h2>
-            <div class="books">
-                <div class="book">
-                    <img src="recent1.jpg" alt="New Book 1">
-                    <h3>New Book 1</h3>
-                    <p>by Author Name</p>
-                </div>
-                <div class="book">
-                    <img src="recent2.jpg" alt="New Book 2">
-                    <h3>New Book 2</h3>
-                    <p>by Author Name</p>
-                </div>
-                <div class="book">
-                    <img src="recent2.jpg" alt="New Book 2">
-                    <h3>New Book 2</h3>
-                    <p>by Author Name</p>
-                </div>
-                <div class="book">
-                    <img src="recent2.jpg" alt="New Book 2">
-                    <h3>New Book 2</h3>
-                    <p>by Author Name</p>
-                </div>
-                <div class="book">
-                    <img src="recent2.jpg" alt="New Book 2">
-                    <h3>New Book 2</h3>
-                    <p>by Author Name</p>
-                </div>
-            </div>
-        </div>
-
+        <!-- Fiction Books -->
         <div class="category">
             <h2>Fiction</h2>
             <div class="books">
-                <div class="book">
-                    <img src="fiction1.jpg" alt="Fiction Book 1">
-                    <h3>Fiction Book 1</h3>
-                    <p>by Author Name</p>
-                </div>
-                <div class="book">
-                    <img src="fiction2.jpg" alt="Fiction Book 2">
-                    <h3>Fiction Book 2</h3>
-                    <p>by Author Name</p>
-                </div>
-                <div class="book">
-                    <img src="recent2.jpg" alt="New Book 2">
-                    <h3>New Book 2</h3>
-                    <p>by Author Name</p>
-                </div>
-                <div class="book">
-                    <img src="recent2.jpg" alt="New Book 2">
-                    <h3>New Book 2</h3>
-                    <p>by Author Name</p>
-                </div>
-                <div class="book">
-                    <img src="recent2.jpg" alt="New Book 2">
-                    <h3>New Book 2</h3>
-                    <p>by Author Name</p>
-                </div>
+                <c:forEach var="book" items="${books}">
+                    <c:if test="${fn:toLowerCase(book.category) eq 'fiction'}">
+                        <div class="book">
+                            <img src="image?bookId=${book.bookId}" alt="${book.title}">
+                            <h3>${book.title}</h3>
+                            <p>by ${book.authorName}</p>
+                            <c:if test="${book.availability == 1}">
+                                <span class="availability available">Available</span>
+                            </c:if>
+                            <c:if test="${book.availability == 0}">
+                                <span class="availability not-available">Not Available</span>
+                            </c:if>
+                            <a href="BookController?action=fullDetails&bookId=${book.bookId}" class="btn-details" style="margin-top:8px;display:inline-block;">View Full Details</a>
+                        </div>
+                    </c:if>
+                </c:forEach>
             </div>
         </div>
+
+        <!-- Book Details Modal -->
+        <div id="bookDetailsModal" class="modal">
+          <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="bookDetailsContent">
+              <!-- Book details will be loaded here -->
+            </div>
+          </div>
+        </div>
     </div>
+    <script>
+    function showBookDetails(bookId) {
+        fetch('BookController?action=details&bookId=' + bookId)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('bookDetailsContent').innerHTML = html;
+                document.getElementById('bookDetailsModal').style.display = 'block';
+            });
+    }
+    function closeModal() {
+        document.getElementById('bookDetailsModal').style.display = 'none';
+    }
+    window.onclick = function(event) {
+        var modal = document.getElementById('bookDetailsModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+    </script>
 </body>
 </html>

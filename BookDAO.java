@@ -1,56 +1,18 @@
 package library.DAO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.InputStream;
 import library.model.Book;
 import library.connection.connectionManager;
 
 public class BookDAO {
     private static Connection connection = null;
 
-    // CREATE - Insert new book
-    public static void addBook(Book book) throws SQLException {
-        try {
-            String query = "INSERT INTO book (Title, AuthorName, synopsis, Category, ISBN, Publisher, PublishYear, Price, Quantity, ReserveID, fineID, availability) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            connection = connectionManager.getConnection();
-            PreparedStatement ps = connection.prepareStatement(query);
-
-            ps.setString(1, book.getTitle());
-            ps.setString(2, book.getAuthorName());
-            ps.setString(3, book.getSynopsis());
-            ps.setString(4, book.getCategory());
-            ps.setInt(5, book.getIsbn());
-            ps.setString(6, book.getPublisher());
-            ps.setInt(7, book.getPublishYear());
-            ps.setDouble(8, book.getPrice());
-            ps.setInt(9, book.getQuantity());
-            if (book.getReserveId() != null) {
-                ps.setInt(10, book.getReserveId());
-            } else {
-                ps.setNull(10, java.sql.Types.INTEGER);
-            }
-            if (book.getFineId() != null) {
-                ps.setInt(11, book.getFineId());
-            } else {
-                ps.setNull(11, java.sql.Types.INTEGER);
-            }
-            ps.setString(12, book.getAvailability());
-
-            ps.executeUpdate();
-            ps.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     // SELECT - get all books from database
     public static List<Book> getAllBooks() throws SQLException {
         List<Book> books = new ArrayList<>();
-
         try {
             String query = "SELECT * FROM book";
             connection = connectionManager.getConnection();
@@ -72,7 +34,14 @@ public class BookDAO {
                 book.setReserveId(rs.wasNull() ? null : reserveId);
                 int fineId = rs.getInt("fineID");
                 book.setFineId(rs.wasNull() ? null : fineId);
-                book.setAvailability(rs.getString("availability"));
+                book.setAvailability(rs.getInt("availability")); // <-- important!
+                
+                // Handle image fields
+                Blob imageBlob = rs.getBlob("image");
+                book.setImage(imageBlob);
+                book.setImageFileName(rs.getString("imageFileName"));
+                book.setImageContentType(rs.getString("imageContentType"));
+                
                 books.add(book);
             }
             ps.close();
@@ -81,18 +50,17 @@ public class BookDAO {
         }
         return books;
     }
-
-    // READ - Get a book by ID
+    
+    // Get book by ID with image
     public static Book getBookById(int bookId) throws SQLException {
         Book book = null;
-
         try {
             String query = "SELECT * FROM book WHERE BookID = ?";
             connection = connectionManager.getConnection();
             PreparedStatement ps = connection.prepareStatement(query);
             ps.setInt(1, bookId);
             ResultSet rs = ps.executeQuery();
-
+            
             if (rs.next()) {
                 book = new Book();
                 book.setBookId(rs.getInt("BookID"));
@@ -109,23 +77,28 @@ public class BookDAO {
                 book.setReserveId(rs.wasNull() ? null : reserveId);
                 int fineId = rs.getInt("fineID");
                 book.setFineId(rs.wasNull() ? null : fineId);
-                book.setAvailability(rs.getString("availability"));
+                book.setAvailability(rs.getInt("availability"));
+                
+                // Handle image fields
+                Blob imageBlob = rs.getBlob("image");
+                book.setImage(imageBlob);
+                book.setImageFileName(rs.getString("imageFileName"));
+                book.setImageContentType(rs.getString("imageContentType"));
             }
-            rs.close();
             ps.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return book;
     }
-
-    // UPDATE - Modify an existing book
-    public static void updateBook(Book book) throws SQLException {
+    
+ // Add book with image
+    public static void addBook(Book book) throws SQLException {
         try {
-            String query = "UPDATE book SET Title=?, AuthorName=?, synopsis=?, Category=?, ISBN=?, Publisher=?, PublishYear=?, Price=?, Quantity=?, ReserveID=?, fineID=?, availability=? WHERE BookID=?";
+            String query = "INSERT INTO book (Title, AuthorName, synopsis, Category, ISBN, Publisher, PublishYear, Price, Quantity, ReserveID, fineID, availability, image, imageFileName, imageContentType) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             connection = connectionManager.getConnection();
             PreparedStatement ps = connection.prepareStatement(query);
-
+            
             ps.setString(1, book.getTitle());
             ps.setString(2, book.getAuthorName());
             ps.setString(3, book.getSynopsis());
@@ -135,27 +108,90 @@ public class BookDAO {
             ps.setInt(7, book.getPublishYear());
             ps.setDouble(8, book.getPrice());
             ps.setInt(9, book.getQuantity());
+            
             if (book.getReserveId() != null) {
                 ps.setInt(10, book.getReserveId());
             } else {
-                ps.setNull(10, java.sql.Types.INTEGER);
+                ps.setNull(10, Types.INTEGER);
             }
+            
             if (book.getFineId() != null) {
                 ps.setInt(11, book.getFineId());
             } else {
-                ps.setNull(11, java.sql.Types.INTEGER);
+                ps.setNull(11, Types.INTEGER);
             }
-            ps.setString(12, book.getAvailability());
-            ps.setInt(13, book.getBookId());
-
+            
+            ps.setInt(12, book.getAvailability());
+            
+            // Handle image
+            if (book.getImage() != null) {
+                ps.setBlob(13, book.getImage());
+            } else {
+                ps.setNull(13, Types.BLOB);
+            }
+            
+            ps.setString(14, book.getImageFileName());
+            ps.setString(15, book.getImageContentType());
+            
             ps.executeUpdate();
             ps.close();
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
         }
     }
-
-    // DELETE - Remove a book by ID
+    
+    // Update book with image
+    public static void updateBook(Book book) throws SQLException {
+        try {
+            String query = "UPDATE book SET Title=?, AuthorName=?, synopsis=?, Category=?, ISBN=?, Publisher=?, PublishYear=?, Price=?, Quantity=?, ReserveID=?, fineID=?, availability=?, image=?, imageFileName=?, imageContentType=? WHERE BookID=?";
+            connection = connectionManager.getConnection();
+            PreparedStatement ps = connection.prepareStatement(query);
+            
+            ps.setString(1, book.getTitle());
+            ps.setString(2, book.getAuthorName());
+            ps.setString(3, book.getSynopsis());
+            ps.setString(4, book.getCategory());
+            ps.setInt(5, book.getIsbn());
+            ps.setString(6, book.getPublisher());
+            ps.setInt(7, book.getPublishYear());
+            ps.setDouble(8, book.getPrice());
+            ps.setInt(9, book.getQuantity());
+            
+            if (book.getReserveId() != null) {
+                ps.setInt(10, book.getReserveId());
+            } else {
+                ps.setNull(10, Types.INTEGER);
+            }
+            
+            if (book.getFineId() != null) {
+                ps.setInt(11, book.getFineId());
+            } else {
+                ps.setNull(11, Types.INTEGER);
+            }
+            
+            ps.setInt(12, book.getAvailability());
+            
+            // Handle image
+            if (book.getImage() != null) {
+                ps.setBlob(13, book.getImage());
+            } else {
+                ps.setNull(13, Types.BLOB);
+            }
+            
+            ps.setString(14, book.getImageFileName());
+            ps.setString(15, book.getImageContentType());
+            ps.setInt(16, book.getBookId());
+            
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+    
+    // Delete book
     public static void deleteBook(int bookId) throws SQLException {
         try {
             String query = "DELETE FROM book WHERE BookID = ?";
@@ -166,6 +202,7 @@ public class BookDAO {
             ps.close();
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
         }
     }
 }

@@ -2,20 +2,31 @@ package library.controller;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Blob;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import library.model.Book;
 import library.DAO.BookDAO;
+import library.connection.connectionManager;
 
 /**
  * Servlet implementation class BookController
  */
 @WebServlet("/BookController")
+@MultipartConfig(
+    fileSizeThreshold = 1024 * 1024, // 1 MB
+    maxFileSize = 1024 * 1024 * 10,  // 10 MB
+    maxRequestSize = 1024 * 1024 * 50 // 50 MB
+)
 public class BookController extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
@@ -27,6 +38,13 @@ public class BookController extends HttpServlet {
         String action = request.getParameter("action");
 
         try {
+        	if ("fullDetails".equals(action)) {
+        	    int bookId = Integer.parseInt(request.getParameter("bookId"));
+        	    Book book = BookDAO.getBookById(bookId);
+        	    request.setAttribute("book", book);
+        	    request.getRequestDispatcher("BookDetailsPage.jsp").forward(request, response);
+        	    return;
+        	}
         	if ("getBookById".equals(action)) {
                 int bookId = Integer.parseInt(request.getParameter("bookId"));
                 Book book = BookDAO.getBookById(bookId);
@@ -123,8 +141,8 @@ public class BookController extends HttpServlet {
         dispatcher.forward(request, response);
     }
 
-    // 4. ADD a new book
-    private void addBook(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+    // 4. ADD a new book with image
+    private void addBook(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         String title = request.getParameter("title");
         String authorName = request.getParameter("authorName");
         String synopsis = request.getParameter("synopsis");
@@ -154,15 +172,35 @@ public class BookController extends HttpServlet {
         book.setQuantity(quantity);
         book.setReserveId(reserveId);
         book.setFineId(fineId);
-        book.setAvailability(availability);
+        book.setAvailability(Integer.parseInt(availability));
+
+        // Handle image upload
+        Part filePart = request.getPart("image");
+        if (filePart != null && filePart.getSize() > 0) {
+            String fileName = getSubmittedFileName(filePart);
+            String contentType = filePart.getContentType();
+            InputStream inputStream = filePart.getInputStream();
+            
+            // Create BLOB from input stream
+            Connection connection = connectionManager.getConnection();
+            Blob blob = connection.createBlob();
+            blob.setBytes(1, inputStream.readAllBytes());
+            
+            book.setImage(blob);
+            book.setImageFileName(fileName);
+            book.setImageContentType(contentType);
+            
+            inputStream.close();
+            connection.close();
+        }
 
         BookDAO.addBook(book);
         System.out.println("Book added successfully.");
         response.sendRedirect("BookController?action=list");
     }
 
-    // 5. UPDATE an existing book
-    private void updateBook(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+    // 5. UPDATE an existing book with image
+    private void updateBook(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         int bookId = Integer.parseInt(request.getParameter("bookId"));
         String title = request.getParameter("title");
         String authorName = request.getParameter("authorName");
@@ -194,10 +232,42 @@ public class BookController extends HttpServlet {
         book.setQuantity(quantity);
         book.setReserveId(reserveId);
         book.setFineId(fineId);
-        book.setAvailability(availability);
+        book.setAvailability(Integer.parseInt(availability));
+
+        // Handle image upload
+        Part filePart = request.getPart("image");
+        if (filePart != null && filePart.getSize() > 0) {
+            String fileName = getSubmittedFileName(filePart);
+            String contentType = filePart.getContentType();
+            InputStream inputStream = filePart.getInputStream();
+            
+            // Create BLOB from input stream
+            Connection connection = connectionManager.getConnection();
+            Blob blob = connection.createBlob();
+            blob.setBytes(1, inputStream.readAllBytes());
+            
+            book.setImage(blob);
+            book.setImageFileName(fileName);
+            book.setImageContentType(contentType);
+            
+            inputStream.close();
+            connection.close();
+        }
 
         BookDAO.updateBook(book);
         System.out.println("Book updated successfully.");
         response.sendRedirect("BookController?action=list");
+    }
+    
+    // Helper method to get submitted file name
+    private String getSubmittedFileName(Part part) {
+        String contentDisp = part.getHeader("content-disposition");
+        String[] tokens = contentDisp.split(";");
+        for (String token : tokens) {
+            if (token.trim().startsWith("filename")) {
+                return token.substring(token.indexOf("=") + 2, token.length() - 1);
+            }
+        }
+        return "";
     }
 }

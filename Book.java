@@ -1,7 +1,7 @@
 package library.model;
 
-
 import java.io.Serializable;
+import java.sql.Blob;
 
 public class Book implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -17,7 +17,10 @@ public class Book implements Serializable {
     private int quantity;
     private Integer reserveId;
     private Integer fineId;
-    private String availability;
+    private int availability;
+    private Blob image; // BLOB field for image
+    private String imageFileName; // Store original filename
+    private String imageContentType; // Store MIME type
 
     public Book() {}
 
@@ -93,10 +96,30 @@ public class Book implements Serializable {
     public void setFineId(Integer fineId) {
         this.fineId = fineId;
     }
-    public String getAvailability() {
+    public int getAvailability() {
         return availability;
     }
-    public void setAvailability(String availability) {
+    public void setAvailability(int availability) {
         this.availability = availability;
+    }
+    
+    // Image-related getters and setters
+    public Blob getImage() {
+        return image;
+    }
+    public void setImage(Blob image) {
+        this.image = image;
+    }
+    public String getImageFileName() {
+        return imageFileName;
+    }
+    public void setImageFileName(String imageFileName) {
+        this.imageFileName = imageFileName;
+    }
+    public String getImageContentType() {
+        return imageContentType;
+    }
+    public void setImageContentType(String imageContentType) {
+        this.imageContentType = imageContentType;
     }
 }
