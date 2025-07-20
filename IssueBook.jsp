@@ -16,33 +16,22 @@
 </head>
 <body>
     <header>
-        <nav class="navbar section-content">
-            <a href="#" class="nav-logo">
-                <img src="image/Whimsigirl Logo.jpg" alt="Library Logo" class="logo-image">
-                <h2 class="logo-text">Whimsigirl Library</h2>
-            </a>
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="HomePage.jsp" class="nav-link">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">Search</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">Reserve</a>
-                </li>
-                <li class="nav-item">
-                    <a href="IssueBook.jsp" class="nav-link">Issue</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">Fine</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">Log Out</a>
-                </li>
-            </ul>
-        </nav>
-    </header>
+    <nav class="navbar">
+        <a href="#" class="nav-logo">
+            <img src="image/Whimsigirl Logo.jpg" alt="Library Logo" class="logo-image">
+            <h2 class="logo-text">Whimsigirl Library</h2>
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="HomeController" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="#" class="nav-link">Search</a></li>
+            <li class="nav-item"><a href="ReserveBook.jsp" class="nav-link">Reserve</a></li>
+            <li class="nav-item"><a href="ReserveController?action=listUser" class="nav-link">My Reservation</a></li>
+            <li class="nav-item"><a href="IssueController?action=listUser" class="nav-link">Issue Record</a></li>
+            <li class="nav-item"><a href="#" class="nav-link">Fine</a></li>
+            <li class="nav-item"><a href="Logout.jsp" class="nav-link">Log Out</a></li>
+        </ul>
+    </nav>
+</header>
 
     <main class="issue-page">
         <div class="form-container">
@@ -58,7 +47,7 @@
                 </div>
                 <div class="form-group">
                     <label>Book:</label>
-                    <input type="text" value="<%= bookTitle %>" readonly>
+                      <input type="text" value="<%= request.getAttribute("bookTitle") %>" readonly>
                     <input type="hidden" name="bookID" value="<%= bookID %>">
                 </div>
                 <div class="form-group">

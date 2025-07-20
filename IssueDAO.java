@@ -29,26 +29,24 @@ public class IssueDAO {
     }
 
     // READ ALL
-    public static List<Issue> getAllIssues() throws SQLException {
+    public static List<Issue> getIssuesByUserId(int userId) throws SQLException {
         List<Issue> issues = new ArrayList<>();
-        try {
-            String query = "SELECT * FROM issue";
-            connection = connectionManager.getConnection();
-            PreparedStatement ps = connection.prepareStatement(query);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Issue issue = new Issue();
-                issue.setIssueID(rs.getInt("issueID"));
-                issue.setUserID(rs.getInt("UserID"));
-                issue.setBookID(rs.getInt("BookID"));
-                issue.setIssue(rs.getString("issue"));
-                issue.setProof(rs.getString("proof"));
-                issues.add(issue);
-            }
-            ps.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        String query = "SELECT * FROM issue WHERE UserID = ?";
+        Connection connection = connectionManager.getConnection();
+        PreparedStatement ps = connection.prepareStatement(query);
+        ps.setInt(1, userId);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Issue issue = new Issue();
+            issue.setIssueID(rs.getInt("issueID"));
+            issue.setUserID(rs.getInt("UserID"));
+            issue.setBookID(rs.getInt("BookID"));
+            issue.setIssue(rs.getString("issue"));
+            issue.setProof(rs.getString("proof")); // image filename
+            issues.add(issue);
         }
+        rs.close();
+        ps.close();
         return issues;
     }
 

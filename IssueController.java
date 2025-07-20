@@ -11,9 +11,12 @@ import jakarta.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import library.model.Issue;
+import library.model.Book;
 import library.DAO.IssueDAO;
+import library.DAO.BookDAO;
 
 @WebServlet("/IssueController")
 @MultipartConfig(fileSizeThreshold=1024*1024*2, // 2MB
@@ -30,6 +33,22 @@ public class IssueController extends HttpServlet {
         String action = request.getParameter("action");
 
         try {
+        	if ("listUser".equals(action)) {
+                Integer userId = (Integer) request.getSession().getAttribute("userID");
+                if (userId == null) {
+                    response.sendRedirect("Login.jsp");
+                    return;
+                }
+                List<Issue> issues = IssueDAO.getIssuesByUserId(userId);
+                List<Book> books = new ArrayList<>();
+                for (Issue issue : issues) {
+                    books.add(BookDAO.getBookById(issue.getBookID()));
+                }
+                request.setAttribute("issues", issues);
+                request.setAttribute("books", books);
+                request.getRequestDispatcher("IssueRecord.jsp").forward(request, response);
+                return;
+            }
             switch (action) {
                 case "list":
                     listIssues(request, response);
@@ -39,6 +58,9 @@ public class IssueController extends HttpServlet {
                     break;
                 case "edit":
                     showEditForm(request, response);
+                    break;
+                case "report": // <-- Add this
+                    showReportForm(request, response);
                     break;
                 default:
                     listIssues(request, response);
@@ -60,6 +82,20 @@ public class IssueController extends HttpServlet {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    
+    private void showReportForm(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
+        // Get bookID from request (e.g., /IssueController?action=report&bookID=5)
+        int bookID = Integer.parseInt(request.getParameter("bookID"));
+        // Fetch book from DB
+        Book book = BookDAO.getBookById(bookID);
+        // Set attributes for JSP
+        request.setAttribute("bookTitle", book.getTitle());
+        request.setAttribute("bookID", book.getBookId());
+        // You may also want to set user info from session
+        // Forward to JSP
+        RequestDispatcher dispatcher = request.getRequestDispatcher("IssueBook.jsp");
+        dispatcher.forward(request, response);
     }
 
     // 1. LIST all issues
@@ -113,7 +149,7 @@ public class IssueController extends HttpServlet {
 
         IssueDAO.addIssue(issue);
         System.out.println("Issue added successfully.");
-        response.sendRedirect("IssueController?action=list");
+        response.sendRedirect("IssueController?action=listUser");
     }
 
     // 5. UPDATE an existing issue
@@ -144,6 +180,6 @@ public class IssueController extends HttpServlet {
 
         IssueDAO.updateIssue(issue);
         System.out.println("Issue updated successfully.");
-        response.sendRedirect("IssueController?action=list");
+        response.sendRedirect("IssueController?action=listUser");
     }
 }
