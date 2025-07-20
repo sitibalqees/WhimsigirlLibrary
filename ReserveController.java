@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import library.model.Book;
 import library.model.Reserve;
@@ -22,7 +23,24 @@ public class ReserveController extends HttpServlet {
     public ReserveController() { super(); }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
         try {
+            if ("listUser".equals(action)) {
+                Integer userId = (Integer) request.getSession().getAttribute("userID");
+                if (userId == null) {
+                    response.sendRedirect("Login.jsp");
+                    return;
+                }
+                List<Reserve> reserves = ReserveDAO.getReservesByUserId(userId);
+                List<Book> books = new ArrayList<>();
+                for (Reserve r : reserves) {
+                    books.add(BookDAO.getBookById(r.getBookId()));
+                }
+                request.setAttribute("reserves", reserves);
+                request.setAttribute("books", books);
+                request.getRequestDispatcher("ReserveRecord.jsp").forward(request, response);
+                return;
+            }
             List<Book> bookList = BookDAO.getAllBooks();
             request.setAttribute("bookList", bookList);
 
@@ -60,7 +78,11 @@ public class ReserveController extends HttpServlet {
             Date reserveDate = Date.valueOf(request.getParameter("reserveDate"));
             Date dueDate = Date.valueOf(request.getParameter("dueDate"));
 
-            System.out.println("userId=" + userId + ", bookId=" + bookId + ", reserveDate=" + reserveDate + ", dueDate=" + dueDate + ", comments=" + comments);
+            // Check for overlapping reservation
+            if (!library.DAO.ReserveDAO.isBookAvailable(bookId, reserveDate, dueDate)) {
+                response.sendRedirect("ReserveBook.jsp?error=notavailable");
+                return;
+            }
 
             Reserve reserve = new Reserve();
             reserve.setUserId(userId);
@@ -69,7 +91,7 @@ public class ReserveController extends HttpServlet {
             reserve.setReserveDate(reserveDate);
             reserve.setDueDate(dueDate);
 
-            ReserveDAO.addReserve(reserve);
+            library.DAO.ReserveDAO.addReserve(reserve);
             response.sendRedirect("ReserveController?success=true");
         } catch (Exception e) {
             e.printStackTrace();
