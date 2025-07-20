@@ -46,7 +46,7 @@ public class LoginController extends HttpServlet {
                     session.setAttribute("userID", user.getUserID());
                     session.setAttribute("userEmail", user.getUserEmail());
                     session.setAttribute("userName", user.getUserName());
-                    response.sendRedirect("HomePage.jsp");
+                    response.sendRedirect("HomeController");
                     return;
                 } else {
                     request.setAttribute("errorMessage", "Invalid user email or password. Please try again.");
