@@ -1,19 +1,24 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page import="java.util.List" %>
+<%@ page import="library.model.Book" %>
+<%
+    List<Book> bookList = (List<Book>) request.getAttribute("bookList");
+    String userName = (String) session.getAttribute("userName");
+    Integer userId = (Integer) session.getAttribute("userID");
+    library.model.Book selectedBook = (library.model.Book) request.getAttribute("selectedBook");
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reserve Book</title>
 <style>
   body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Poppins', sans-serif;
     margin: 0;
-    background-color: #f9e6e6; /* Soft pink background */
+    background-color: #f4e1e4;
   }
   .navbar {
-    background-color: #5b1f1f; /* Deep maroon */
+    background-color: #3c0d0d;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -51,7 +56,7 @@
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
   }
   .form-container h2 {
-    color: #a0522d;
+    color: #b68d40;
     text-align: center;
     margin-bottom: 25px;
   }
@@ -63,7 +68,8 @@
   }
   input[type="text"],
   select,
-  textarea {
+  textarea,
+  input[type="date"] {
     width: 100%;
     padding: 12px;
     margin-bottom: 20px;
@@ -85,7 +91,7 @@
   button {
     width: 100%;
     padding: 12px;
-    background-color: #c44d4d;
+    background-color: #28a745;
     color: white;
     border: none;
     border-radius: 8px;
@@ -95,54 +101,77 @@
     transition: background-color 0.3s ease;
   }
   button:hover {
-    background-color: #a23c3c;
+    background-color: #218838;
   }
+  .success, .error {
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+  .success { color: #28a745; }
+  .error { color: #c44d4d; }
 </style>
 </head>
 <body>
 
 <div class="navbar">
   <div class="logo">
-    <img src="logo.png" alt="Library Logo">
+    <img src="image/Whimsigirl Logo.jpg" alt="Library Logo">
     Whimsigirl Library
   </div>
-  <div class="nav-links">
-    <a href="add.jsp">Add</a>
-    <a href="update.jsp">Update</a>
-    <a href="delete.jsp">Delete</a>
-    <a href="return.jsp">Return</a>
-    <a href="fine.jsp">Fine Record</a>
-    <a href="logout.jsp">Log Out</a>
+  <div>
+    <a href="HomeController">Home</a>
+    <a href="#">Search</a>
+    <a href="ReserveBook.jsp">Reserve</a>
+    <a href="IssueBook.jsp">Issue</a>
+    <a href="#">Fine</a>
+    <a href="#">Log Out</a>
   </div>
 </div>
 
 <div class="form-container">
   <h2>Reserve Book</h2>
-  <form action="ReserveServlet" method="post">
-    <label for="title">Book Title</label>
-    <input type="text" id="title" name="title" placeholder="Enter book title" required>
+  <% if ("true".equals(request.getParameter("success"))) { %>
+    <div class="success">Book reserved successfully!</div>
+  <% } else if ("true".equals(request.getParameter("error"))) { %>
+    <div class="error">Failed to reserve book. Please try again.</div>
+  <% } %>
+  <form action="ReserveController" method="post">
+    <label>User</label>
+    <input type="text" value="<%= userName %>" readonly>
+    <input type="hidden" name="userId" value="<%= userId %>">
 
-    <label for="author">Author</label>
-    <input type="text" id="author" name="author" placeholder="Enter author name" required>
-
-    <label for="category">Category</label>
-    <select id="category" name="category" required>
-      <option value="">Select Category</option>
-      <option value="Fiction">Fiction</option>
-      <option value="Non-fiction">Non-fiction</option>
-      <option value="Reference">Reference</option>
-      <option value="Magazine">Magazine</option>
-    </select>
-
-    <label for="icno">IC No</label>
-    <input type="text" id="icno" name="icno" placeholder="Enter your IC number" required>
+    <label for="bookId">Book</label>
+    <% if (selectedBook != null) { %>
+        <input type="text" value="<%= selectedBook.getTitle() %> by <%= selectedBook.getAuthorName() %> (<%= selectedBook.getCategory() %>)" readonly>
+        <input type="hidden" name="bookId" value="<%= selectedBook.getBookId() %>">
+    <% } else { %>
+        <select id="bookId" name="bookId" required>
+          <option value="">Select Book</option>
+          <% if (bookList != null) {
+               for (Book book : bookList) {
+                   if (book.getAvailability() == 1) { %>
+            <option value="<%= book.getBookId() %>">
+              <%= book.getTitle() %> by <%= book.getAuthorName() %> (<%= book.getCategory() %>)
+            </option>
+          <%     }
+               }
+             } %>
+        </select>
+    <% } %>
 
     <label for="comments">Additional Comments (Optional)</label>
     <textarea id="comments" name="comments" placeholder="Any additional information..."></textarea>
 
+    <label for="reserveDate">Reserve Date</label>
+    <input type="date" id="reserveDate" name="reserveDate" required>
+
+    <label for="dueDate">Due Date</label>
+    <input type="date" id="dueDate" name="dueDate" required>
+
     <button type="submit">Reserve Book</button>
   </form>
 </div>
-
 </body>
 </html>
