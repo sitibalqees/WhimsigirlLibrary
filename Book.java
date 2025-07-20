@@ -14,10 +14,8 @@ public class Book implements Serializable {
     private String publisher;
     private int publishYear;
     private double price;
-    private int quantity;
     private Integer reserveId;
     private Integer fineId;
-    private int availability;
     private Blob image; // BLOB field for image
     private String imageFileName; // Store original filename
     private String imageContentType; // Store MIME type
@@ -78,12 +76,6 @@ public class Book implements Serializable {
     public void setPrice(double price) {
         this.price = price;
     }
-    public int getQuantity() {
-        return quantity;
-    }
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
     public Integer getReserveId() {
         return reserveId;
     }
@@ -95,12 +87,6 @@ public class Book implements Serializable {
     }
     public void setFineId(Integer fineId) {
         this.fineId = fineId;
-    }
-    public int getAvailability() {
-        return availability;
-    }
-    public void setAvailability(int availability) {
-        this.availability = availability;
     }
     
     // Image-related getters and setters

@@ -17,6 +17,10 @@ import java.util.List;
 import library.model.Book;
 import library.DAO.BookDAO;
 import library.connection.connectionManager;
+import java.sql.Date;
+import java.util.HashMap;
+import java.util.Map;
+import library.DAO.ReserveDAO;
 
 /**
  * Servlet implementation class BookController
@@ -36,33 +40,35 @@ public class BookController extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
-
         try {
         	if ("fullDetails".equals(action)) {
         	    int bookId = Integer.parseInt(request.getParameter("bookId"));
         	    Book book = BookDAO.getBookById(bookId);
+
+        	    // Get the same date range as homepage (from request or default to today)
+        	    String reserveDateStr = request.getParameter("reserveDate");
+        	    String dueDateStr = request.getParameter("dueDate");
+        	    Date selectedReserveDate = (reserveDateStr != null && !reserveDateStr.isEmpty())
+        	        ? Date.valueOf(reserveDateStr)
+        	        : new Date(System.currentTimeMillis());
+        	    Date selectedDueDate = (dueDateStr != null && !dueDateStr.isEmpty())
+        	        ? Date.valueOf(dueDateStr)
+        	        : selectedReserveDate;
+
+        	    // Check availability for this book and date range
+        	    boolean available = ReserveDAO.isBookAvailable(bookId, selectedReserveDate, selectedDueDate);
+
+        	    // Pass as a map for JSP compatibility
+        	    Map<Integer, Boolean> bookAvailableMap = new HashMap<>();
+        	    bookAvailableMap.put(bookId, available);
+
         	    request.setAttribute("book", book);
+        	    request.setAttribute("bookAvailableMap", bookAvailableMap);
+        	    request.setAttribute("selectedReserveDate", selectedReserveDate);
+        	    request.setAttribute("selectedDueDate", selectedDueDate);
         	    request.getRequestDispatcher("BookDetailsPage.jsp").forward(request, response);
         	    return;
         	}
-        	if ("getBookById".equals(action)) {
-                int bookId = Integer.parseInt(request.getParameter("bookId"));
-                Book book = BookDAO.getBookById(bookId);
-                response.setContentType("application/json");
-                if (book != null) {
-                    String json = String.format(
-                        "{\"title\":\"%s\",\"authorName\":\"%s\",\"isbn\":\"%s\",\"category\":\"%s\"}",
-                        escapeJson(book.getTitle()),
-                        escapeJson(book.getAuthorName()),
-                        escapeJson(String.valueOf(book.getIsbn())),
-                        escapeJson(book.getCategory())
-                    );
-                    response.getWriter().write(json);
-                } else {
-                    response.getWriter().write("{}");
-                }
-                return;
-            }
             switch (action) {
                 case "list":
                     listBooks(request, response);
@@ -169,10 +175,8 @@ public class BookController extends HttpServlet {
         book.setPublisher(publisher);
         book.setPublishYear(publishYear);
         book.setPrice(price);
-        book.setQuantity(quantity);
         book.setReserveId(reserveId);
         book.setFineId(fineId);
-        book.setAvailability(Integer.parseInt(availability));
 
         // Handle image upload
         Part filePart = request.getPart("image");
@@ -229,10 +233,8 @@ public class BookController extends HttpServlet {
         book.setPublisher(publisher);
         book.setPublishYear(publishYear);
         book.setPrice(price);
-        book.setQuantity(quantity);
         book.setReserveId(reserveId);
         book.setFineId(fineId);
-        book.setAvailability(Integer.parseInt(availability));
 
         // Handle image upload
         Part filePart = request.getPart("image");

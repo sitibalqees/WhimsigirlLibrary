@@ -36,19 +36,20 @@
             <p><strong>Publisher:</strong> ${book.publisher}</p>
             <p><strong>Year:</strong> ${book.publishYear}</p>
             <p><strong>Price:</strong> RM ${book.price}</p>
-            <p><strong>Quantity:</strong> ${book.quantity}</p>
-            <c:if test="${book.availability == 1}">
-                <span class="availability available">Available</span>
-            </c:if>
-            <c:if test="${book.availability == 0}">
-                <span class="availability not-available">Not Available</span>
-            </c:if>
+            <c:choose>
+                <c:when test="${bookAvailableMap[book.bookId]}">
+                    <span class="availability available">Available</span>
+                </c:when>
+                <c:otherwise>
+                    <span class="availability not-available">Not Available</span>
+                </c:otherwise>
+            </c:choose>
         </div>
         <div class="synopsis">
             <strong>Synopsis:</strong>
             <p>${book.synopsis}</p>
         </div>
-        <c:if test="${book.availability == 1}">
+        <c:if test="${bookAvailableMap[book.bookId]}">
             <button class="btn-reserve" onclick="window.location.href='ReserveController?bookId=${book.bookId}'">Reserve</button>
         </c:if>
         <a href="HomeController" class="btn-back">Back to Library</a>

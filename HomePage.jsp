@@ -238,33 +238,21 @@ header .navbar{
 </head>
 <body>
 	<header>
-		<nav class="navbar section-content">
-			<a href="#" class="nav-logo">
-			<img src="image/Whimsigirl Logo.jpg" alt="Library Logo" class="logo-image">
-				<h2 class ="logo-text">Whimsigirl Library</h2>
-			</a>
-			<ul class="nav-menu">
-				<li class ="nav-item">
-					<a href="HomeController" class="nav-link">Home</a>
-				</li>
-				<li class ="nav-item">
-					<a href="" class="nav-link">Search</a>
-				</li>
-				<li class ="nav-item">
-					<a href="ReserveBook.jsp" class="nav-link">Reserve</a>
-				</li>
-				<li class ="nav-item">
-					<a href="IssueBook.jsp" class="nav-link">Issue</a>
-				</li>
-				<li class ="nav-item">
-					<a href="#" class="nav-link">Fine</a>
-				</li>
-				<li class ="nav-item">
-					<a href="#" class="nav-link">Log Out</a>
-				</li>
-			</ul>
-		</nav>
-	</header>
+    <nav class="navbar">
+        <a href="#" class="nav-logo">
+            <img src="image/Whimsigirl Logo.jpg" alt="Library Logo" class="logo-image">
+            <h2 class="logo-text">Whimsigirl Library</h2>
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="HomeController" class="nav-link">Home</a></li>
+            <li class="nav-item"><a href="#" class="nav-link">Search</a></li>
+            <li class="nav-item"><a href="ReserveController?action=listUser" class="nav-link">My Reservation</a></li>
+            <li class="nav-item"><a href="IssueController?action=listUser" class="nav-link">Issue Record</a></li>
+            <li class="nav-item"><a href="#" class="nav-link">Fine</a></li>
+            <li class="nav-item"><a href="Logout.jsp" class="nav-link">Log Out</a></li>
+        </ul>
+    </nav>
+</header>
 	
 	<div class="main-content">
         <h2>Welcome to Our Library!</h2>
@@ -274,22 +262,24 @@ header .navbar{
         <div class="category">
             <h2>Non Fiction</h2>
             <div class="books">
-                <c:forEach var="book" items="${books}">
-                    <c:if test="${fn:toLowerCase(book.category) eq 'non fiction'}">
-                        <div class="book">
-    						<img src="image?bookId=${book.bookId}" alt="${book.title}">
-    						<h3>${book.title}</h3>
-    						<p>by ${book.authorName}</p>
-    						<c:if test="${book.availability == 1}">
-        						<span class="availability available">Available</span>
-    						</c:if>
-    						<c:if test="${book.availability == 0}">
-        						<span class="availability not-available">Not Available</span>
-    						</c:if>
-    						<a href="BookController?action=fullDetails&bookId=${book.bookId}" class="btn-details" style="margin-top:8px;display:inline-block;">View Full Details</a>
-						</div>
-                    </c:if>
-                </c:forEach>
+				<c:forEach var="book" items="${books}">
+				    <c:if test="${fn:toLowerCase(book.category) eq 'non fiction'}">
+				        <div class="book">
+				            <img src="image?bookId=${book.bookId}" alt="${book.title}">
+				            <h3>${book.title}</h3>
+				            <p>by ${book.authorName}</p>
+				            <c:choose>
+				                <c:when test="${bookAvailableMap[book.bookId]}">
+				                    <span class="availability available">Available</span>
+				                </c:when>
+				                <c:otherwise>
+				                    <span class="availability not-available">Not Available</span>
+				                </c:otherwise>
+				            </c:choose>
+				            <a href="BookController?action=fullDetails&bookId=${book.bookId}" class="btn-details" style="margin-top:8px;display:inline-block;">View Full Details</a>
+				        </div>
+				    </c:if>
+				</c:forEach>
             </div>
         </div>
 
@@ -298,21 +288,23 @@ header .navbar{
             <h2>Fiction</h2>
             <div class="books">
                 <c:forEach var="book" items="${books}">
-                    <c:if test="${fn:toLowerCase(book.category) eq 'fiction'}">
-                        <div class="book">
-                            <img src="image?bookId=${book.bookId}" alt="${book.title}">
-                            <h3>${book.title}</h3>
-                            <p>by ${book.authorName}</p>
-                            <c:if test="${book.availability == 1}">
-                                <span class="availability available">Available</span>
-                            </c:if>
-                            <c:if test="${book.availability == 0}">
-                                <span class="availability not-available">Not Available</span>
-                            </c:if>
-                            <a href="BookController?action=fullDetails&bookId=${book.bookId}" class="btn-details" style="margin-top:8px;display:inline-block;">View Full Details</a>
-                        </div>
-                    </c:if>
-                </c:forEach>
+    				<c:if test="${fn:toLowerCase(book.category) eq 'fiction'}">
+        				<div class="book">
+            				<img src="image?bookId=${book.bookId}" alt="${book.title}">
+            					<h3>${book.title}</h3>
+            					<p>by ${book.authorName}</p>
+		            		<c:choose>
+		                	<c:when test="${bookAvailableMap[book.bookId]}">
+		                    	<span class="availability available">Available</span>
+		                	</c:when>
+		                	<c:otherwise>
+		                    	<span class="availability not-available">Not Available</span>
+		                	</c:otherwise>
+		            		</c:choose>
+		            	<a href="BookController?action=fullDetails&bookId=${book.bookId}" class="btn-details" style="margin-top:8px;display:inline-block;">View Full Details</a>
+		        		</div>
+    				</c:if>
+				</c:forEach>
             </div>
         </div>
 

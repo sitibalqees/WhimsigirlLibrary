@@ -29,12 +29,10 @@ public class BookDAO {
                 book.setPublisher(rs.getString("Publisher"));
                 book.setPublishYear(rs.getInt("PublishYear"));
                 book.setPrice(rs.getDouble("Price"));
-                book.setQuantity(rs.getInt("Quantity"));
                 int reserveId = rs.getInt("ReserveID");
                 book.setReserveId(rs.wasNull() ? null : reserveId);
                 int fineId = rs.getInt("fineID");
                 book.setFineId(rs.wasNull() ? null : fineId);
-                book.setAvailability(rs.getInt("availability")); // <-- important!
                 
                 // Handle image fields
                 Blob imageBlob = rs.getBlob("image");
@@ -72,12 +70,10 @@ public class BookDAO {
                 book.setPublisher(rs.getString("Publisher"));
                 book.setPublishYear(rs.getInt("PublishYear"));
                 book.setPrice(rs.getDouble("Price"));
-                book.setQuantity(rs.getInt("Quantity"));
                 int reserveId = rs.getInt("ReserveID");
                 book.setReserveId(rs.wasNull() ? null : reserveId);
                 int fineId = rs.getInt("fineID");
                 book.setFineId(rs.wasNull() ? null : fineId);
-                book.setAvailability(rs.getInt("availability"));
                 
                 // Handle image fields
                 Blob imageBlob = rs.getBlob("image");
@@ -107,7 +103,6 @@ public class BookDAO {
             ps.setString(6, book.getPublisher());
             ps.setInt(7, book.getPublishYear());
             ps.setDouble(8, book.getPrice());
-            ps.setInt(9, book.getQuantity());
             
             if (book.getReserveId() != null) {
                 ps.setInt(10, book.getReserveId());
@@ -121,7 +116,6 @@ public class BookDAO {
                 ps.setNull(11, Types.INTEGER);
             }
             
-            ps.setInt(12, book.getAvailability());
             
             // Handle image
             if (book.getImage() != null) {
@@ -156,7 +150,6 @@ public class BookDAO {
             ps.setString(6, book.getPublisher());
             ps.setInt(7, book.getPublishYear());
             ps.setDouble(8, book.getPrice());
-            ps.setInt(9, book.getQuantity());
             
             if (book.getReserveId() != null) {
                 ps.setInt(10, book.getReserveId());
@@ -170,7 +163,6 @@ public class BookDAO {
                 ps.setNull(11, Types.INTEGER);
             }
             
-            ps.setInt(12, book.getAvailability());
             
             // Handle image
             if (book.getImage() != null) {
