@@ -45,10 +45,10 @@
   .form-container {
     background-color: #fff;
     max-width: 500px;
-    margin: 70px auto;
+    margin: 40px auto;
     padding: 30px 40px;
     border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   }
   .form-container h2 {
     color: #a0522d;
@@ -61,18 +61,27 @@
     margin-bottom: 5px;
     color: #333;
   }
-  input[type="text"] {
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  input[type="file"] {
     width: 100%;
     padding: 12px;
     margin-bottom: 20px;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 15px;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
     transition: border-color 0.3s ease;
   }
-  input:focus {
+  input:focus,
+  textarea:focus {
     border-color: #a23c3c;
     outline: none;
+  }
+  textarea {
+      resize: vertical;
+      min-height: 80px;
   }
   button {
     width: 100%;
@@ -95,36 +104,46 @@
 
 <div class="navbar">
   <div class="logo">
-    <img src="logo.png" alt="Library Logo">
+    <img src="image/Whimsigirl Logo.jpg" alt="Library Logo">
     Whimsigirl Library
   </div>
   <div class="nav-links">
-    <a href="add.jsp">Add</a>
-    <a href="update.jsp">Update</a>
-    <a href="delete.jsp">Delete</a>
-    <a href="return.jsp">Return</a>
-    <a href="fine.jsp">Fine Record</a>
-    <a href="logout.jsp">Log Out</a>
+    <a href="BookController?action=list">Book List</a>
+    <a href="AdminPage.jsp">Admin Page</a>
+    <a href="LogoutController">Log Out</a>
   </div>
 </div>
 
 <div class="form-container">
-  <h2>Add Book</h2>
-  <form action="AddBookServlet" method="post">
-    <label for="bookId">Book ID</label>
-    <input type="text" id="bookId" name="bookId" placeholder="Enter book ID" required>
+  <h2>Add New Book</h2>
+  <form action="BookController" method="post" enctype="multipart/form-data">
 
     <label for="title">Title</label>
     <input type="text" id="title" name="title" placeholder="Enter book title" required>
 
-    <label for="author">Author</label>
-    <input type="text" id="author" name="author" placeholder="Enter author name" required>
+    <label for="authorName">Author Name</label>
+    <input type="text" id="authorName" name="authorName" placeholder="Enter author name" required>
 
-    <label for="isbn">ISBN</label>
-    <input type="text" id="isbn" name="isbn" placeholder="Enter ISBN number" required>
+    <label for="synopsis">Synopsis</label>
+    <textarea id="synopsis" name="synopsis" placeholder="Enter a brief synopsis" required></textarea>
 
     <label for="category">Category</label>
     <input type="text" id="category" name="category" placeholder="Enter book category" required>
+
+    <label for="isbn">ISBN</label>
+    <input type="number" id="isbn" name="isbn" placeholder="Enter ISBN number" required>
+    
+    <label for="publisher">Publisher</label>
+    <input type="text" id="publisher" name="publisher" placeholder="Enter publisher name" required>
+
+    <label for="publishYear">Publication Year</label>
+    <input type="number" id="publishYear" name="publishYear" placeholder="e.g., 2023" required>
+
+    <label for="price">Price</label>
+    <input type="number" id="price" name="price" step="0.01" placeholder="e.g., 29.99" required>
+
+    <label for="image">Book Cover Image</label>
+    <input type="file" id="image" name="image" accept="image/*" required>
 
     <button type="submit">Add Book</button>
   </form>
