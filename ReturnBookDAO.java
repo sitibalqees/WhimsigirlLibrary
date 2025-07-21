@@ -1,32 +1,29 @@
 package library.DAO;
 
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import library.connection.connectionManager;
 
 public class ReturnBookDAO {
-    public static void returnBook(String title, String authorName, String username) throws SQLException {
+    public static void returnBook(String userId, String bookId) throws SQLException {
         Connection connection = connectionManager.getConnection();
         try {
-            // Remove the record from borrowed_books table
-            String query = "DELETE FROM borrowed_books WHERE title = ? AND authorName = ? AND username = ?";
+            // Remove the record from reserve table
+            String query = "DELETE FROM `reserve` WHERE userId = ? AND bookId = ?";
             PreparedStatement ps = connection.prepareStatement(query);
-            ps.setString(1, title);
-            ps.setString(2, authorName);
-            ps.setString(3, username);
+            ps.setString(1, userId);
+            ps.setString(2, bookId);
             int affectedRows = ps.executeUpdate();
             ps.close();
 
-            // Optionally, update the book's availability in the book table
-            String updateBook = "UPDATE book SET availability = availability + 1 WHERE title = ? AND authorName = ?";
-            PreparedStatement ps2 = connection.prepareStatement(updateBook);
-            ps2.setString(1, title);
-            ps2.setString(2, authorName);
-            ps2.executeUpdate();
-            ps2.close();
+           // Insert into return table
+            String insertReturn = "INSERT INTO `return` (`AdminID`, `UserID`, `returnDate`) VALUES (?, ?, NOW())";
+            PreparedStatement ps3 = connection.prepareStatement(insertReturn);
+            ps3.setString(1, "1"); // Hardcoded AdminID for now
+            ps3.setString(2, userId);
+            ps3.executeUpdate();
+            ps3.close();
 
             if (affectedRows == 0) {
                 throw new SQLException("No matching borrowed book found for return.");

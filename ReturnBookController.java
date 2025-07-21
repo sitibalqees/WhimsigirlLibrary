@@ -20,11 +20,10 @@ public class ReturnBookController extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String title = request.getParameter("title");
-        String authorName = request.getParameter("authorName");
-        String username = request.getParameter("username");
+        String userId = request.getParameter("userId");
+        String bookId = request.getParameter("bookId");
         try {
-            ReturnBookDAO.returnBook(title, authorName, username);
+            ReturnBookDAO.returnBook(userId, bookId);
             request.setAttribute("message", "Book returned successfully!");
         } catch (SQLException e) {
             request.setAttribute("message", "Error returning book: " + e.getMessage());

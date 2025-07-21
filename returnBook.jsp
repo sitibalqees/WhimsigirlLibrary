@@ -100,25 +100,31 @@
     <div class="admin-navbar">
         <span class="admin-title">Library Admin</span>
         <div class="admin-menu">
-            <a href="#">Add Book</a>
-            <a href="#">Update Book</a>
-            <a href="#">Delete Book</a>
-            <a href="#" class="active">Return Book</a>
+            <a href="#">Home</a>
+            <a href="AddBook.jsp">Add Book</a>
+            <a href="updateBook.jsp">Update Book</a>
+            <a href="RemoveBook.jsp">Delete Book</a>
+            <a href="returnBook.jsp" class="active">Return Book</a>
             <a href="#">Fine Record</a>
-            
         </div>
     </div>
     <!-- Main container for the return book form -->
     <div class="return-container">
         <h2>Return a Book</h2>
+        <% String message = (String) request.getAttribute("message"); %>
+        <% if (message != null) { %>
+            <div style="color: green; text-align: center; margin-bottom: 20px;">
+                <%= message %>
+            </div>
+        <% } %>
         <form action="ReturnBookController" method="post">
             <b>User ID: </b><br>
             <input type="text" name="userId" required><br><br>
             <b>Book ID: </b><br>
             <input type="text" name="bookId" required><br><br>
-            <input type="submit" value="Return Book">
+            <input type="submit" value="Return Book" class="return-btn">
             <input type="reset">
         </form>
     </div>
 </body>
-</html> 
+</html>
