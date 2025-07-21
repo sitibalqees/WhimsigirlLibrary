@@ -100,11 +100,10 @@
     <div class="admin-navbar">
         <span class="admin-title">Library Admin</span>
         <div class="admin-menu">
-        	<a href="#">Home</a>
-            <a href="AddBook.jsp">Add Book</a>
-            <a href="updateBook.jsp">Update Book</a>
-            <a href="RemoveBook.jsp">Delete Book</a>
-            <a href="returnBook.jsp" class="active">Return Book</a>
+            <a href="#">Add Book</a>
+            <a href="#">Update Book</a>
+            <a href="#">Delete Book</a>
+            <a href="#" class="active">Return Book</a>
             <a href="#">Fine Record</a>
             
         </div>
@@ -112,17 +111,14 @@
     <!-- Main container for the return book form -->
     <div class="return-container">
         <h2>Return a Book</h2>
-       
-         <form action="ReturnBookController" method="post">
-        <b>Book Title: </b><br>
-        <input type="text" name="title" required><br><br>
-        <b>Author Name: </b><br>
-        <input type="text" name="authorName" required><br><br>
-        <b>Username: </b><br>
-        <input type="text" name="username" required><br><br>
-        <input type="submit" value="Return Book">
-        <input type="reset">
-    </form>
+        <form action="ReturnBookController" method="post">
+            <b>User ID: </b><br>
+            <input type="text" name="userId" required><br><br>
+            <b>Book ID: </b><br>
+            <input type="text" name="bookId" required><br><br>
+            <input type="submit" value="Return Book">
+            <input type="reset">
+        </form>
     </div>
 </body>
 </html> 

@@ -1,5 +1,5 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -101,30 +101,33 @@
   <!-- Users Navigation Bar -->
     <div class="navbar">
         <div class="logo">
-            <img src="logo.jpg" alt="Library Logo" />
+            <img src="image/Whimsigirl Logo.jpg" alt="Library Logo" />
             <span class="title">Whimsigirl Library</span>
         </div>
         <div class="menu">
-            <a href="#">Home</a>
-            <a href="#">Search</a>
-            <a href="#">Reserve</a>
-            <a href="#">Issue</a>
-            <a href="#" class="active">Fine</a>
-            <a href="#">Log Out</a>
+            <a href="HomePage.jsp">Home</a>
+            <a href="searchPage.jsp">Search</a>
+            <a href="ReserveBook.jsp">Reserve</a>
+            <a href="IssueBook.jsp">Issue</a>
+            <a href="payFine.jsp" class="active">Fine</a>
+            <a href="Logout.jsp">Log Out</a>
         </div>
     </div>
     <div class="container">
         <h2>Pay Fine</h2>
-        <div class="info">
-            <label>Username:</label>
-            <div class="value">john_doe</div>
-            <label>Book Reserved:</label>
-            <div class="value">The Awkward Human</div>
-            <label>Reason:</label>
-            <div class="value">Late return</div>
-        </div>
-        <div class="fine-amount">Amount Due: $15.00</div>
-        <button class="pay-btn">Pay Now</button>
+        <form action="FineController" method="post">
+            <div class="info">
+                <label>Username:</label>
+                <div class="value">${fine.username}</div>
+                <label>Book Reserved:</label>
+                <div class="value">${fine.bookTitle}</div>
+                <label>Reason:</label>
+                <div class="value">${fine.reason}</div>
+            </div>
+            <div class="fine-amount">Amount Due: RM ${fine.amount}</div>
+            <input type="hidden" name="fineId" value="${fine.fineId}" />
+            <button class="pay-btn" type="submit">Pay Now</button>
+        </form>
     </div>
 </body>
 </html> 
