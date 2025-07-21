@@ -50,6 +50,39 @@
             box-shadow: 0 4px 24px rgba(60,40,10,0.10);
             padding: 36px 32px 32px 32px;
         }
+        .search-container {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .search-input {
+            width: 50%;
+            padding: 10px 15px;
+            font-size: 1em;
+            border: 1px solid #cfc6b1;
+            border-radius: 6px;
+            font-family: Georgia, serif;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #bfa76f;
+            box-shadow: 0 0 5px rgba(191,167,111,0.5);
+        }
+        .search-button {
+            padding: 11px 20px;
+            font-size: 1em;
+            font-family: Georgia, serif;
+            color: #fff;
+            background-color: #7a5c1e;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: background-color 0.2s;
+            vertical-align: top;
+        }
+        .search-button:hover {
+            background-color: #4b2e2e;
+        }
         h2 {
             color: #4b2e2e;
             text-align: center;
@@ -108,6 +141,14 @@
             background: #bfa76f;
             color: #fff;
         }
+        .action-link.remove {
+            color: #d9534f;
+            border-color: #d9534f;
+        }
+        .action-link.remove:hover {
+            background: #d9534f;
+            color: #fff;
+        }
         .success-msg {
             background: #d4edda;
             color: #155724;
@@ -143,7 +184,7 @@
         @media (max-width: 900px) {
             .container {
                 padding: 16px 4px 12px 4px;
-            }
+        }
             table, th, td {
                 font-size: 0.98em;
             }
@@ -169,7 +210,6 @@
             <a href="AdminPage.jsp">Home</a>
             <a href="AddBook.jsp">Add Book</a>
             <a href="BookController?action=list" class="active">Update</a>
-            <a href="RemoveBook.jsp">Delete Book</a>
             <a href="returnBook.jsp">Return Book</a>
             <a href="#">Fine Record</a>
         </div>
@@ -186,37 +226,83 @@
                 }, 3000);
             </script>
         </c:if>
+        <c:if test="${not empty sessionScope.deleteSuccess}">
+            <div class="success-msg" id="deleteSuccessMsg">
+                Book deleted successfully!
+            </div>
+            <c:remove var="deleteSuccess" scope="session" />
+        </c:if>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <form id="searchForm" onsubmit="searchBooks(event)">
+                <input type="text" id="searchInput" class="search-input" onkeyup="searchBooks()" placeholder="Search for books by title or author...">
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </div>
+
         <h2>Book List</h2>
         <a class="add-link" href="BookController?action=add">+ Add New Book</a>
-        <table>
-            <tr>
-                <th>Title &amp; Author</th>
-                <th>Category</th>
-                <th>Publisher</th>
-                <th>Year</th>
-                <th>ISBN</th>
-                <th>Synopsis</th>
-                <th>Price</th>
-                <th>Actions</th>
-            </tr>
-            <c:forEach var="book" items="${books}">
+        <table id="bookTable">
+            <thead>
                 <tr>
-                    <td>
-                        <div class="book-title">${book.title}</div>
-                        <div class="book-meta">by ${book.authorName}</div>
-                    </td>
-                    <td class="book-meta">${book.category}</td>
-                    <td class="book-meta">${book.publisher}</td>
-                    <td class="book-numbers">${book.publishYear}</td>
-                    <td class="book-numbers">${book.isbn}</td>
-                    <td class="book-meta" style="max-width:180px; white-space:pre-line; overflow:hidden; text-overflow:ellipsis;">${book.synopsis}</td>
-                    <td class="book-numbers">${book.price}</td>
-                    <td class="book-actions">
-                        <a class="action-link" href="BookController?action=edit&bookId=${book.bookId}">Edit</a>
-                    </td>
+                    <th>Title &amp; Author</th>
+                    <th>Category</th>
+                    <th>Publisher</th>
+                    <th>Year</th>
+                    <th>ISBN</th>
+                    <th>Synopsis</th>
+                    <th>Price</th>
+                    <th>Actions</th>
                 </tr>
-            </c:forEach>
+            </thead>
+            <tbody>
+                <c:forEach var="book" items="${books}">
+                    <tr>
+                        <td>
+                            <div class="book-title">${book.title}</div>
+                            <div class="book-meta">by ${book.authorName}</div>
+                        </td>
+                        <td class="book-meta">${book.category}</td>
+                        <td class="book-meta">${book.publisher}</td>
+                        <td class="book-numbers">${book.publishYear}</td>
+                        <td class="book-numbers">${book.isbn}</td>
+                        <td class="book-meta" style="max-width:180px; white-space:pre-line; overflow:hidden; text-overflow:ellipsis;">${book.synopsis}</td>
+                        <td class="book-numbers">${book.price}</td>
+                        <td class="book-actions">
+                            <a class="action-link" href="BookController?action=edit&bookId=${book.bookId}">Edit</a>
+                            <a class="action-link remove" href="BookController?action=delete&bookId=${book.bookId}">Remove</a>
+                        </td>
+                    </tr>
+                </c:forEach>
+            </tbody>
         </table>
     </div>
+
+    <script>
+        function searchBooks(event) {
+            if(event) {
+              event.preventDefault(); // Prevents form from submitting and reloading the page
+            }
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("searchInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("bookTable");
+            tr = table.getElementsByTagName("tr");
+
+            // Loop through all table rows (excluding the header), and hide those who don't match the search query
+            for (i = 1; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[0]; // Column for Title & Author
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }       
+            }
+        }
+    </script>
 </body>
 </html>
