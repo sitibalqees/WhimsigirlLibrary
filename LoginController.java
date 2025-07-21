@@ -27,6 +27,7 @@ public class LoginController extends HttpServlet {
                 if (admin != null && admin.isLoggedIn()) {
                     HttpSession session = request.getSession(true);
                     session.setAttribute("adminId", admin.getAdminId());
+                    session.setAttribute("adminName", admin.getAdminName()); // Store admin name for display
                     session.setAttribute("adminEmail", admin.getAdminEmail());
                     session.setAttribute("role", "admin");
                     response.sendRedirect("AdminPage.jsp");
