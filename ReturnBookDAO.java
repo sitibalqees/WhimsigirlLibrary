@@ -1,36 +1,72 @@
+// ReturnBookDAO.java
 package library.DAO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.*;
 import library.connection.connectionManager;
+import library.model.*;
 
 public class ReturnBookDAO {
-    public static void returnBook(String userId, String bookId) throws SQLException {
-        Connection connection = connectionManager.getConnection();
+    public static void processReturn(int adminId, String username, int reserveId, java.sql.Date returnDate) throws SQLException {
+        Connection conn = null;
         try {
-            // Remove the record from reserve table
-            String query = "DELETE FROM `reserve` WHERE userId = ? AND bookId = ?";
-            PreparedStatement ps = connection.prepareStatement(query);
-            ps.setString(1, userId);
-            ps.setString(2, bookId);
-            int affectedRows = ps.executeUpdate();
-            ps.close();
+            conn = connectionManager.getConnection();
+            conn.setAutoCommit(false);
 
-           // Insert into return table
-            String insertReturn = "INSERT INTO `return` (`AdminID`, `UserID`, `returnDate`) VALUES (?, ?, NOW())";
-            PreparedStatement ps3 = connection.prepareStatement(insertReturn);
-            ps3.setString(1, "1"); // Hardcoded AdminID for now
-            ps3.setString(2, userId);
-            ps3.executeUpdate();
-            ps3.close();
-
-            if (affectedRows == 0) {
-                throw new SQLException("No matching borrowed book found for return.");
+            // Get UserID from reserve
+            int userId = -1;
+            try (PreparedStatement ps = conn.prepareStatement("SELECT UserID FROM reserve WHERE ReserveID=?")) {
+                ps.setInt(1, reserveId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        userId = rs.getInt("UserID");
+                    } else {
+                        throw new SQLException("Reservation not found.");
+                    }
+                }
             }
+
+            // Delete from reserve
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM reserve WHERE ReserveID=?")) {
+                ps.setInt(1, reserveId);
+                ps.executeUpdate();
+            }
+
+            // Insert into return table (no BookID)
+            try (PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO `return` (AdminID, UserID, returnDate) VALUES (?, ?, ?)")) {
+                ps.setInt(1, adminId);
+                ps.setInt(2, userId);
+                ps.setDate(3, returnDate);
+                ps.executeUpdate();
+            }
+
+            conn.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            if (conn != null) conn.rollback();
             throw e;
+        } finally {
+            if (conn != null) conn.setAutoCommit(true);
+            if (conn != null) conn.close();
         }
+    }
+
+    public static List<Object[]> getRecentReturns() throws SQLException {
+        List<Object[]> list = new ArrayList<>();
+        String sql = "SELECT r.ReturnID, a.adminName, u.UserName, r.returnDate " +
+                     "FROM `return` r " +
+                     "JOIN admin a ON r.AdminID = a.adminId " +
+                     "JOIN users u ON r.UserID = u.UserID " +
+                     "ORDER BY r.returnDate DESC LIMIT 10";
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Object[]{
+                    rs.getInt(1), rs.getString(2), rs.getString(3), rs.getDate(4)
+                });
+            }
+        }
+        return list;
     }
 }
