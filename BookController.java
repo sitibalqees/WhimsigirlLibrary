@@ -203,65 +203,72 @@ public class BookController extends HttpServlet {
         response.sendRedirect("BookController?action=list");
     }
 
-    // 5. UPDATE an existing book with image
-    private void updateBook(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
-        int bookId = Integer.parseInt(request.getParameter("bookId"));
-        String title = request.getParameter("title");
-        String authorName = request.getParameter("authorName");
-        String synopsis = request.getParameter("synopsis");
-        String category = request.getParameter("category");
-        int isbn = Integer.parseInt(request.getParameter("isbn"));
+    // update book
+    private void updateBook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String bookIdStr = request.getParameter("bookId");
+        String isbnStr = request.getParameter("isbn");
         String publisher = request.getParameter("publisher");
-        int publishYear = Integer.parseInt(request.getParameter("publishYear"));
-        double price = Double.parseDouble(request.getParameter("price"));
-        int quantity = Integer.parseInt(request.getParameter("quantity"));
-        String availability = request.getParameter("availability");
+        String priceStr = request.getParameter("price");
 
-        // Optional fields
-        String reserveIdStr = request.getParameter("reserveId");
-        String fineIdStr = request.getParameter("fineId");
-        Integer reserveId = (reserveIdStr != null && !reserveIdStr.isEmpty()) ? Integer.parseInt(reserveIdStr) : null;
-        Integer fineId = (fineIdStr != null && !fineIdStr.isEmpty()) ? Integer.parseInt(fineIdStr) : null;
-
-        Book book = new Book();
-        book.setBookId(bookId);
-        book.setTitle(title);
-        book.setAuthorName(authorName);
-        book.setSynopsis(synopsis);
-        book.setCategory(category);
-        book.setIsbn(isbn);
-        book.setPublisher(publisher);
-        book.setPublishYear(publishYear);
-        book.setPrice(price);
-        book.setReserveId(reserveId);
-        book.setFineId(fineId);
-
-        // Handle image upload
-        Part filePart = request.getPart("image");
-        if (filePart != null && filePart.getSize() > 0) {
-            String fileName = getSubmittedFileName(filePart);
-            String contentType = filePart.getContentType();
-            InputStream inputStream = filePart.getInputStream();
-            
-            // Create BLOB from input stream
-            Connection connection = connectionManager.getConnection();
-            Blob blob = connection.createBlob();
-            blob.setBytes(1, inputStream.readAllBytes());
-            
-            book.setImage(blob);
-            book.setImageFileName(fileName);
-            book.setImageContentType(contentType);
-            
-            inputStream.close();
-            connection.close();
+        if (bookIdStr == null || bookIdStr.isEmpty() ||
+            isbnStr == null || isbnStr.isEmpty() ||
+            publisher == null || publisher.isEmpty() ||
+            priceStr == null || priceStr.isEmpty()) {
+            request.setAttribute("error", "All fields are required.");
+            try {
+                int bookId = Integer.parseInt(bookIdStr);
+                Book book = BookDAO.getBookById(bookId);
+                request.setAttribute("book", book);
+            } catch (Exception e) {}
+            request.getRequestDispatcher("editBook.jsp").forward(request, response);
+            return;
         }
 
-        BookDAO.updateBook(book);
-        System.out.println("Book updated successfully.");
-        response.sendRedirect("BookController?action=list");
+        try {
+            int bookId = Integer.parseInt(bookIdStr);
+            int isbn = Integer.parseInt(isbnStr);
+            double price = Double.parseDouble(priceStr);
+
+            Book book = BookDAO.getBookById(bookId);
+            book.setIsbn(isbn);
+            book.setPublisher(publisher);
+            book.setPrice(price);
+
+            // Handle image upload
+            Part filePart = request.getPart("image");
+            if (filePart != null && filePart.getSize() > 0) {
+                String fileName = getSubmittedFileName(filePart);
+                String contentType = filePart.getContentType();
+                InputStream inputStream = filePart.getInputStream();
+
+                Connection connection = connectionManager.getConnection();
+                Blob blob = connection.createBlob();
+                blob.setBytes(1, inputStream.readAllBytes());
+
+                book.setImage(blob);
+                book.setImageFileName(fileName);
+                book.setImageContentType(contentType);
+
+                inputStream.close();
+                connection.close();
+            }
+
+            BookDAO.updateBook(book);
+
+            request.setAttribute("updateSuccess", true);
+            listBooks(request, response);
+        } catch (NumberFormatException | SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Invalid input. Please check your entries.");
+            try {
+                int bookId = Integer.parseInt(bookIdStr);
+                Book book = BookDAO.getBookById(bookId);
+                request.setAttribute("book", book);
+            } catch (Exception ex) {}
+            request.getRequestDispatcher("editBook.jsp").forward(request, response);
+        }
     }
-    
-    // Helper method to get submitted file name
+
     private String getSubmittedFileName(Part part) {
         String contentDisp = part.getHeader("content-disposition");
         String[] tokens = contentDisp.split(";");
