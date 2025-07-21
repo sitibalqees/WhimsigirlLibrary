@@ -1,3 +1,4 @@
+
 package library.DAO;
 
 import java.sql.*;
@@ -67,6 +68,27 @@ public class ReserveDAO {
         rs.close();
         ps.close();
         return available;
+    }
+    
+    public static Reserve getReserveById(int reserveId) throws SQLException {
+        Reserve reserve = null;
+        String query = "SELECT * FROM reserve WHERE ReserveID = ?";
+        Connection connection = connectionManager.getConnection();
+        PreparedStatement ps = connection.prepareStatement(query);
+        ps.setInt(1, reserveId);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            reserve = new Reserve();
+            reserve.setReserveId(rs.getInt("ReserveID"));
+            reserve.setUserId(rs.getInt("UserID"));
+            reserve.setBookId(rs.getInt("BookID"));
+            reserve.setComments(rs.getString("comments"));
+            reserve.setReserveDate(rs.getDate("ReserveDate"));
+            reserve.setDueDate(rs.getDate("dueDate"));
+        }
+        rs.close();
+        ps.close();
+        return reserve;
     }
 }    
     

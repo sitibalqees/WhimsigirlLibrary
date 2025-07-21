@@ -6,6 +6,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import library.connection.connectionManager;
 import library.model.User;
@@ -68,8 +70,8 @@ public class UserDAO {
         }
     }
     
-    public static java.util.List<User> getAllUsers() throws SQLException {
-        java.util.List<User> users = new java.util.ArrayList<>();
+    public static List<User> getAllUsers() throws SQLException {
+        List<User> users = new ArrayList<>();
         String query = "SELECT * FROM users";
         try {
             con = connectionManager.getConnection();
@@ -89,5 +91,18 @@ public class UserDAO {
             throw e;
         }
         return users;
+    }
+    
+    public static int getUserIdByUsername(String username) throws SQLException {
+        int userId = -1;
+        try (Connection con = connectionManager.getConnection();
+             PreparedStatement ps = con.prepareStatement("SELECT UserID FROM users WHERE UserName=?")) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) userId = rs.getInt("UserID");
+                else throw new SQLException("User not found.");
+            }
+        }
+        return userId;
     }
 }
