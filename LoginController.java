@@ -1,14 +1,12 @@
 package library.controller;
 
 import java.io.IOException;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
 import library.model.User;
 import library.model.Admin;
 import library.DAO.UserDAO;
@@ -30,8 +28,8 @@ public class LoginController extends HttpServlet {
                     HttpSession session = request.getSession(true);
                     session.setAttribute("adminId", admin.getAdminId());
                     session.setAttribute("adminEmail", admin.getAdminEmail());
-                    // Optionally: session.setAttribute("adminName", admin.getAdminName());
-                    response.sendRedirect("AdminDashboard.jsp");
+                    session.setAttribute("role", "admin");
+                    response.sendRedirect("AdminPage.jsp");
                     return;
                 } else {
                     request.setAttribute("errorMessage", "Invalid admin email or password. Please try again.");
@@ -46,6 +44,7 @@ public class LoginController extends HttpServlet {
                     session.setAttribute("userID", user.getUserID());
                     session.setAttribute("userEmail", user.getUserEmail());
                     session.setAttribute("userName", user.getUserName());
+                    session.setAttribute("role", "user");
                     response.sendRedirect("HomeController");
                     return;
                 } else {
