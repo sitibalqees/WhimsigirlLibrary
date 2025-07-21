@@ -1,4 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.util.List" %>
+<%@ page import="library.model.Book" %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -59,58 +62,75 @@
         }
 
         .search-form {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
             margin-bottom: 2rem;
         }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            margin-bottom: 0.5rem;
-            color: #5c1a1a;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .form-group input {
+        .search-input {
             padding: 0.8rem;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 1rem;
+            width: 300px;
         }
-
-        .search-button {
-            grid-column: 1 / -1;
-            text-align: center;
-        }
-
-        .search-button button {
+        .search-btn {
             background-color: #b84141;
             color: white;
             border: none;
-            padding: 1rem 2rem;
+            padding: 0.8rem 2rem;
             border-radius: 5px;
             cursor: pointer;
             font-size: 1.1rem;
             font-weight: bold;
             transition: background-color 0.3s;
         }
-
-        .search-button button:hover {
+        .search-btn:hover {
             background-color: #8b2f2f;
         }
-
-        .search-info {
+        .results-title {
             text-align: center;
             color: #5c1a1a;
-            font-style: italic;
-            margin-top: 2rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
         }
+        .book-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+        .book-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 350px;
+            padding-bottom: 1.5rem;
+        }
+        .book-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+        }
+        .book-info {
+            padding: 1.2rem;
+            width: 100%;
+        }
+        .book-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .book-author, .book-isbn, .book-category, .book-year, .book-synopsis {
+            margin: 0.2rem 0;
+            color: #5c1a1a;
+        }
+       
     </style>
 </head>
 <body>
@@ -129,35 +149,38 @@
     <div class="container">
         <h1>Search for Books</h1>
         
-        <form action="BookController" method="GET" class="search-form">
-            <div class="form-group">
-                <label for="bookTitle">Book Title</label>
-                <input type="text" id="bookTitle" name="bookTitle" placeholder="Enter book title...">
-            </div>
-            
-            <div class="form-group">
-                <label for="author">Author</label>
-                <input type="text" id="author" name="author" placeholder="Enter author name...">
-            </div>
-            
-            <div class="form-group">
-                <label for="isbn">ISBN</label>
-                <input type="text" id="isbn" name="isbn" placeholder="Enter ISBN...">
-            </div>
-            
-            <div class="form-group">
-                <label for="genre">Genre</label>
-                <input type="text" id="genre" name="genre" placeholder="Enter genre...">
-            </div>
-            
-            <div class="search-button">
-                <button type="submit">Search Books</button>
-            </div>
+        <form action="BookController" method="get" class="search-form">
+            <input type="text" name="keyword" placeholder="Enter book title..." class="search-input" />
+            <button type="submit" class="search-btn">Search Books</button>
         </form>
 
-        <div class="search-info">
-            <p>Enter search criteria above to find books in our library.</p>
-            <p>You can search by title, author, ISBN, or genre.</p>
+        <h2 class="results-title">Search Results</h2>
+        <div class="book-list">
+        <%
+            List<Book> books = (List<Book>) request.getAttribute("books");
+            if (books != null && !books.isEmpty()) {
+                for (Book book : books) {
+        %>
+            <div class="book-card">
+                <img src="<%= book.getImage() %>" alt="Book Cover" class="book-image"/>
+                <div class="book-info">
+                    <h3 class="book-title"><%= book.getTitle() %></h3>
+                    <p class="book-author">by <%= book.getAuthorName() %></p>
+                    <p class="book-isbn">ISBN: <%= book.getIsbn() %></p>
+                    <p class="book-category"><%= book.getCategory() %></p>
+                    <p class="book-year">Published: <%= book.getPublishYear() %></p>
+                    <p class="book-synopsis"><%= book.getSynopsis() %></p>
+                    <button class="reserve-btn">Reserve This Book</button>
+                </div>
+            </div>
+        <%
+                }
+            } else if (books != null) {
+        %>
+            <p>No books found.</p>
+        <%
+            }
+        %>
         </div>
     </div>
 </body>
