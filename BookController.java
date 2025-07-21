@@ -41,34 +41,34 @@ public class BookController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
         try {
-        	if ("fullDetails".equals(action)) {
-        	    int bookId = Integer.parseInt(request.getParameter("bookId"));
-        	    Book book = BookDAO.getBookById(bookId);
+            if ("fullDetails".equals(action)) {
+                int bookId = Integer.parseInt(request.getParameter("bookId"));
+                Book book = BookDAO.getBookById(bookId);
 
-        	    // Get the same date range as homepage (from request or default to today)
-        	    String reserveDateStr = request.getParameter("reserveDate");
-        	    String dueDateStr = request.getParameter("dueDate");
-        	    Date selectedReserveDate = (reserveDateStr != null && !reserveDateStr.isEmpty())
-        	        ? Date.valueOf(reserveDateStr)
-        	        : new Date(System.currentTimeMillis());
-        	    Date selectedDueDate = (dueDateStr != null && !dueDateStr.isEmpty())
-        	        ? Date.valueOf(dueDateStr)
-        	        : selectedReserveDate;
+                // Get the same date range as homepage (from request or default to today)
+                String reserveDateStr = request.getParameter("reserveDate");
+                String dueDateStr = request.getParameter("dueDate");
+                Date selectedReserveDate = (reserveDateStr != null && !reserveDateStr.isEmpty())
+                    ? Date.valueOf(reserveDateStr)
+                    : new Date(System.currentTimeMillis());
+                Date selectedDueDate = (dueDateStr != null && !dueDateStr.isEmpty())
+                    ? Date.valueOf(dueDateStr)
+                    : selectedReserveDate;
 
-        	    // Check availability for this book and date range
-        	    boolean available = ReserveDAO.isBookAvailable(bookId, selectedReserveDate, selectedDueDate);
+                // Check availability for this book and date range
+                boolean available = ReserveDAO.isBookAvailable(bookId, selectedReserveDate, selectedDueDate);
 
-        	    // Pass as a map for JSP compatibility
-        	    Map<Integer, Boolean> bookAvailableMap = new HashMap<>();
-        	    bookAvailableMap.put(bookId, available);
+                // Pass as a map for JSP compatibility
+                Map<Integer, Boolean> bookAvailableMap = new HashMap<>();
+                bookAvailableMap.put(bookId, available);
 
-        	    request.setAttribute("book", book);
-        	    request.setAttribute("bookAvailableMap", bookAvailableMap);
-        	    request.setAttribute("selectedReserveDate", selectedReserveDate);
-        	    request.setAttribute("selectedDueDate", selectedDueDate);
-        	    request.getRequestDispatcher("BookDetailsPage.jsp").forward(request, response);
-        	    return;
-        	}
+                request.setAttribute("book", book);
+                request.setAttribute("bookAvailableMap", bookAvailableMap);
+                request.setAttribute("selectedReserveDate", selectedReserveDate);
+                request.setAttribute("selectedDueDate", selectedDueDate);
+                request.getRequestDispatcher("BookDetailsPage.jsp").forward(request, response);
+                return;
+            }
             switch (action) {
                 case "list":
                     listBooks(request, response);
@@ -91,11 +91,6 @@ public class BookController extends HttpServlet {
         }
     }
 
-    private String escapeJson(String value) {
-        if (value == null) return "";
-        return value.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r");
-    }
-	
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
@@ -167,8 +162,6 @@ public class BookController extends HttpServlet {
         String publisher = request.getParameter("publisher");
         int publishYear = Integer.parseInt(request.getParameter("publishYear"));
         double price = Double.parseDouble(request.getParameter("price"));
-        int quantity = Integer.parseInt(request.getParameter("quantity"));
-        String availability = request.getParameter("availability");
 
         // Optional fields
         String reserveIdStr = request.getParameter("reserveId");
@@ -216,19 +209,31 @@ public class BookController extends HttpServlet {
     // update book
     private void updateBook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String bookIdStr = request.getParameter("bookId");
+        String title = request.getParameter("title");
+        String authorName = request.getParameter("authorName");
+        String synopsis = request.getParameter("synopsis");
+        String category = request.getParameter("category");
         String isbnStr = request.getParameter("isbn");
         String publisher = request.getParameter("publisher");
+        String publishYearStr = request.getParameter("publishYear");
         String priceStr = request.getParameter("price");
 
         if (bookIdStr == null || bookIdStr.isEmpty() ||
+            title == null || title.isEmpty() ||
+            authorName == null || authorName.isEmpty() ||
+            synopsis == null || synopsis.isEmpty() ||
+            category == null || category.isEmpty() ||
             isbnStr == null || isbnStr.isEmpty() ||
             publisher == null || publisher.isEmpty() ||
+            publishYearStr == null || publishYearStr.isEmpty() ||
             priceStr == null || priceStr.isEmpty()) {
             request.setAttribute("error", "All fields are required.");
             try {
-                int bookId = Integer.parseInt(bookIdStr);
-                Book book = BookDAO.getBookById(bookId);
-                request.setAttribute("book", book);
+                if (bookIdStr != null && !bookIdStr.isEmpty()) {
+                    int bookId = Integer.parseInt(bookIdStr);
+                    Book book = BookDAO.getBookById(bookId);
+                    request.setAttribute("book", book);
+                }
             } catch (Exception e) {}
             request.getRequestDispatcher("editBook.jsp").forward(request, response);
             return;
@@ -237,11 +242,17 @@ public class BookController extends HttpServlet {
         try {
             int bookId = Integer.parseInt(bookIdStr);
             int isbn = Integer.parseInt(isbnStr);
+            int publishYear = Integer.parseInt(publishYearStr);
             double price = Double.parseDouble(priceStr);
 
             Book book = BookDAO.getBookById(bookId);
+            book.setTitle(title);
+            book.setAuthorName(authorName);
+            book.setSynopsis(synopsis);
+            book.setCategory(category);
             book.setIsbn(isbn);
             book.setPublisher(publisher);
+            book.setPublishYear(publishYear);
             book.setPrice(price);
 
             // Handle image upload
@@ -281,6 +292,7 @@ public class BookController extends HttpServlet {
 
     private String getSubmittedFileName(Part part) {
         String contentDisp = part.getHeader("content-disposition");
+        if (contentDisp == null) return "";
         String[] tokens = contentDisp.split(";");
         for (String token : tokens) {
             if (token.trim().startsWith("filename")) {

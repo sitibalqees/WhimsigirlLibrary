@@ -11,10 +11,13 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set; // <-- Import Set
 import library.model.Book;
 import library.model.Reserve;
 import library.DAO.BookDAO;
 import library.DAO.ReserveDAO;
+import library.DAO.ReturnBookDAO; // <-- Import ReturnBookDAO
+import library.DAO.UserDAO;
 
 @WebServlet("/ReserveController")
 public class ReserveController extends HttpServlet {
@@ -36,16 +39,23 @@ public class ReserveController extends HttpServlet {
                 for (Reserve r : reserves) {
                     books.add(BookDAO.getBookById(r.getBookId()));
                 }
+                // Get the set of returned IDs
+                Set<Integer> returnedReserveIds = ReturnBookDAO.getReturnedReserveIdsForUser(userId);
+
                 request.setAttribute("reserves", reserves);
                 request.setAttribute("books", books);
+                // Pass the set to the JSP
+                request.setAttribute("returnedReserveIds", returnedReserveIds);
+
                 request.getRequestDispatcher("ReserveRecord.jsp").forward(request, response);
                 return;
             }
+            
             // Admin: list all reserves
             if ("listAll".equals(action)) {
-                List<Reserve> reserves = library.DAO.ReserveDAO.getAllReserves();
+                List<Reserve> reserves = ReserveDAO.getAllReserves();
                 List<Book> books = new ArrayList<>();
-                List<library.model.User> users = library.DAO.UserDAO.getAllUsers();
+                List<library.model.User> users = UserDAO.getAllUsers();
                 for (Reserve r : reserves) {
                     books.add(BookDAO.getBookById(r.getBookId()));
                 }
@@ -64,6 +74,8 @@ public class ReserveController extends HttpServlet {
                 request.getRequestDispatcher("AdminReserveRecord.jsp").forward(request, response);
                 return;
             }
+
+            // Default action: Show the form to reserve a book
             List<Book> bookList = BookDAO.getAllBooks();
             request.setAttribute("bookList", bookList);
 
@@ -81,6 +93,7 @@ public class ReserveController extends HttpServlet {
             dispatcher.forward(request, response);
         } catch (SQLException e) {
             e.printStackTrace();
+            throw new ServletException(e);
         }
     }
 
@@ -102,7 +115,7 @@ public class ReserveController extends HttpServlet {
             Date dueDate = Date.valueOf(request.getParameter("dueDate"));
 
             // Check for overlapping reservation
-            if (!library.DAO.ReserveDAO.isBookAvailable(bookId, reserveDate, dueDate)) {
+            if (!ReserveDAO.isBookAvailable(bookId, reserveDate, dueDate)) {
                 response.sendRedirect("ReserveBook.jsp?error=notavailable");
                 return;
             }
@@ -114,7 +127,7 @@ public class ReserveController extends HttpServlet {
             reserve.setReserveDate(reserveDate);
             reserve.setDueDate(dueDate);
 
-            library.DAO.ReserveDAO.addReserve(reserve);
+            ReserveDAO.addReserve(reserve);
             response.sendRedirect("ReserveController?success=true");
         } catch (Exception e) {
             e.printStackTrace();
