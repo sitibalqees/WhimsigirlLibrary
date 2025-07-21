@@ -73,11 +73,14 @@ public class BookController extends HttpServlet {
                 case "list":
                     listBooks(request, response);
                     break;
-                case "delete":
-                    deleteBook(request, response);
+                case "delete": // Changed to show confirmation page
+                    showDeleteConfirmPage(request, response);
                     break;
                 case "edit":
                     showEditForm(request, response);
+                    break;
+                case "showDeleteConfirm": // New action for clarity
+                    showDeleteConfirmPage(request, response);
                     break;
                 default:
                     listBooks(request, response);
@@ -126,16 +129,23 @@ public class BookController extends HttpServlet {
         dispatcher.forward(request, response);
     }
 
-    // 2. DELETE a book
+    // Show delete confirmation page
+    private void showDeleteConfirmPage(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
+        int bookId = Integer.parseInt(request.getParameter("bookId"));
+        Book existingBook = BookDAO.getBookById(bookId);
+        request.setAttribute("book", existingBook);
+        RequestDispatcher dispatcher = request.getRequestDispatcher("RemoveBook.jsp");
+        dispatcher.forward(request, response);
+    }
+
+    // 2. DELETE a book and redirect
     private void deleteBook(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         int bookId = Integer.parseInt(request.getParameter("bookId"));
         BookDAO.deleteBook(bookId);
         System.out.println("Book deleted successfully.");
-        // Set a request attribute to indicate success
-        request.setAttribute("deleteSuccess", true);
-        // Forward back to RemoveBook.jsp
-        RequestDispatcher dispatcher = request.getRequestDispatcher("RemoveBook.jsp");
-        dispatcher.forward(request, response);
+        // Set a session attribute to show a success message on the book list page
+        request.getSession().setAttribute("deleteSuccess", true);
+        response.sendRedirect(request.getContextPath() + "/BookController?action=list");
     }
 
     // 3. SHOW edit form for a book

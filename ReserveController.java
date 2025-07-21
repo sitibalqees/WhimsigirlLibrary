@@ -41,6 +41,29 @@ public class ReserveController extends HttpServlet {
                 request.getRequestDispatcher("ReserveRecord.jsp").forward(request, response);
                 return;
             }
+            // Admin: list all reserves
+            if ("listAll".equals(action)) {
+                List<Reserve> reserves = library.DAO.ReserveDAO.getAllReserves();
+                List<Book> books = new ArrayList<>();
+                List<library.model.User> users = library.DAO.UserDAO.getAllUsers();
+                for (Reserve r : reserves) {
+                    books.add(BookDAO.getBookById(r.getBookId()));
+                }
+                // Sorting logic
+                String sort = request.getParameter("sort");
+                String order = request.getParameter("order");
+                if ("reserveDate".equals(sort)) {
+                    reserves.sort((a, b) -> {
+                        int cmp = a.getReserveDate().compareTo(b.getReserveDate());
+                        return ("asc".equals(order)) ? cmp : -cmp;
+                    });
+                }
+                request.setAttribute("reserves", reserves);
+                request.setAttribute("books", books);
+                request.setAttribute("users", users);
+                request.getRequestDispatcher("AdminReserveRecord.jsp").forward(request, response);
+                return;
+            }
             List<Book> bookList = BookDAO.getAllBooks();
             request.setAttribute("bookList", bookList);
 
