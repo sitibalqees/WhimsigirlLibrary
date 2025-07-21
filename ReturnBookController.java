@@ -17,7 +17,9 @@ import library.model.Reserve;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @WebServlet("/ReturnBookController")
 public class ReturnBookController extends HttpServlet {
@@ -42,8 +44,15 @@ public class ReturnBookController extends HttpServlet {
         if (username != null && !username.isEmpty()) {
             try {
                 int userId = UserDAO.getUserIdByUsername(username);
-                List<Reserve> reserves = ReserveDAO.getReservesByUserId(userId);
-                request.setAttribute("reserves", reserves);
+                List<Reserve> allReserves = ReserveDAO.getReservesByUserId(userId);
+                Set<Integer> returnedReserveIds = ReturnBookDAO.getReturnedReserveIdsForUser(userId);
+                List<Reserve> unreturnedReserves = new ArrayList<>();
+                for (Reserve reserve : allReserves) {
+                    if (returnedReserveIds == null || !returnedReserveIds.contains(reserve.getReserveId())) {
+                        unreturnedReserves.add(reserve);
+                    }
+                }
+                request.setAttribute("reserves", unreturnedReserves);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -75,7 +84,7 @@ public class ReturnBookController extends HttpServlet {
                 long daysLate = diffMillis / (1000 * 60 * 60 * 24);
                 message = "You need to pay fine because you are late for " + daysLate + " days.";
             } else {
-                ReturnBookDAO.processReturn(adminId, username, reserveId, returnDate);
+            	  ReturnBookDAO.processReturn(adminId, reserveId, returnDate);
                 message = "Book returned successfully and recorded.";
             }
         } catch (Exception e) {

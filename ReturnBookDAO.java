@@ -7,49 +7,58 @@ import library.connection.connectionManager;
 import library.model.*;
 
 public class ReturnBookDAO {
-    public static void processReturn(int adminId, String username, int reserveId, java.sql.Date returnDate) throws SQLException {
-        Connection conn = null;
-        try {
-            conn = connectionManager.getConnection();
-            conn.setAutoCommit(false);
+	public static void processReturn(int adminId, int reserveId, java.sql.Date returnDate) throws SQLException {
+	    Connection conn = null;
+	    PreparedStatement psGetReserve = null;
+	    PreparedStatement psInsertReturn = null;
+	    ResultSet rs = null;
 
-            // Get UserID from reserve
-            int userId = -1;
-            try (PreparedStatement ps = conn.prepareStatement("SELECT UserID FROM reserve WHERE ReserveID=?")) {
-                ps.setInt(1, reserveId);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        userId = rs.getInt("UserID");
-                    } else {
-                        throw new SQLException("Reservation not found.");
-                    }
-                }
-            }
+	    String getReserveQuery = "SELECT UserID, BookID FROM reserve WHERE ReserveID=?";
+	    String insertReturnQuery = "INSERT INTO `return` (AdminID, UserID, BookID, ReserveID, returnDate) VALUES (?, ?, ?, ?, ?)";
 
-            // Delete from reserve
-            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM reserve WHERE ReserveID=?")) {
-                ps.setInt(1, reserveId);
-                ps.executeUpdate();
-            }
+	    try {
+	        conn = connectionManager.getConnection();
+	        conn.setAutoCommit(false);
 
-            // Insert into return table (no BookID)
-            try (PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO `return` (AdminID, UserID, returnDate) VALUES (?, ?, ?)")) {
-                ps.setInt(1, adminId);
-                ps.setInt(2, userId);
-                ps.setDate(3, returnDate);
-                ps.executeUpdate();
-            }
+	        // 1. Get UserID and BookID from the reservation
+	        psGetReserve = conn.prepareStatement(getReserveQuery);
+	        psGetReserve.setInt(1, reserveId);
+	        rs = psGetReserve.executeQuery();
 
-            conn.commit();
-        } catch (SQLException e) {
-            if (conn != null) conn.rollback();
-            throw e;
-        } finally {
-            if (conn != null) conn.setAutoCommit(true);
-            if (conn != null) conn.close();
-        }
-    }
+	        int userId = -1;
+	        int bookId = -1;
+	        if (rs.next()) {
+	            userId = rs.getInt("UserID");
+	            bookId = rs.getInt("BookID");
+	        } else {
+	            throw new SQLException("Reservation with ID " + reserveId + " not found.");
+	        }
+
+	        // 2. Insert into the 'return' table
+	        psInsertReturn = conn.prepareStatement(insertReturnQuery);
+	        psInsertReturn.setInt(1, adminId);
+	        psInsertReturn.setInt(2, userId);
+	        psInsertReturn.setInt(3, bookId);
+	        psInsertReturn.setInt(4, reserveId);
+	        psInsertReturn.setDate(5, returnDate);
+	        psInsertReturn.executeUpdate();
+
+	        // 3. Do NOT delete from the 'reserve' table (keep history)
+
+	        conn.commit();
+	    } catch (SQLException e) {
+	        if (conn != null) conn.rollback();
+	        throw e;
+	    } finally {
+	        if (rs != null) rs.close();
+	        if (psGetReserve != null) psGetReserve.close();
+	        if (psInsertReturn != null) psInsertReturn.close();
+	        if (conn != null) {
+	            conn.setAutoCommit(true);
+	            conn.close();
+	        }
+	    }
+	}
 
     public static List<Object[]> getRecentReturns() throws SQLException {
         List<Object[]> list = new ArrayList<>();
@@ -68,5 +77,20 @@ public class ReturnBookDAO {
             }
         }
         return list;
+    }
+
+    public static Set<Integer> getReturnedReserveIdsForUser(int userId) throws SQLException {
+        Set<Integer> returned = new HashSet<>();
+        String sql = "SELECT ReserveID FROM `return` WHERE UserID = ?";
+        try (Connection conn = connectionManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    returned.add(rs.getInt(1));
+                }
+            }
+        }
+        return returned;
     }
 }
