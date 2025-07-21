@@ -14,17 +14,16 @@ import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.sql.Date;
 import library.model.Book;
 import library.DAO.BookDAO;
 import library.connection.connectionManager;
-import java.sql.Date;
-import java.util.HashMap;
-import java.util.Map;
 import library.DAO.ReserveDAO;
 
-/**
- * Servlet implementation class BookController
- */
 @WebServlet("/BookController")
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024, // 1 MB
@@ -40,12 +39,15 @@ public class BookController extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
+        if ("search".equals(action) || isSearchRequest(request)) {
+            handleSearch(request, response);
+            return;
+        }
         try {
             if ("fullDetails".equals(action)) {
                 int bookId = Integer.parseInt(request.getParameter("bookId"));
                 Book book = BookDAO.getBookById(bookId);
 
-                // Get the same date range as homepage (from request or default to today)
                 String reserveDateStr = request.getParameter("reserveDate");
                 String dueDateStr = request.getParameter("dueDate");
                 Date selectedReserveDate = (reserveDateStr != null && !reserveDateStr.isEmpty())
@@ -55,10 +57,8 @@ public class BookController extends HttpServlet {
                     ? Date.valueOf(dueDateStr)
                     : selectedReserveDate;
 
-                // Check availability for this book and date range
                 boolean available = ReserveDAO.isBookAvailable(bookId, selectedReserveDate, selectedDueDate);
 
-                // Pass as a map for JSP compatibility
                 Map<Integer, Boolean> bookAvailableMap = new HashMap<>();
                 bookAvailableMap.put(bookId, available);
 
@@ -73,13 +73,13 @@ public class BookController extends HttpServlet {
                 case "list":
                     listBooks(request, response);
                     break;
-                case "delete": // Changed to show confirmation page
+                case "delete":
                     showDeleteConfirmPage(request, response);
                     break;
                 case "edit":
                     showEditForm(request, response);
                     break;
-                case "showDeleteConfirm": // New action for clarity
+                case "showDeleteConfirm":
                     showDeleteConfirmPage(request, response);
                     break;
                 default:
@@ -88,6 +88,39 @@ public class BookController extends HttpServlet {
             }
         } catch (SQLException ex) {
             throw new ServletException(ex);
+        }
+    }
+
+    private boolean isSearchRequest(HttpServletRequest request) {
+        return request.getParameter("bookTitle") != null ||
+               request.getParameter("author") != null ||
+               request.getParameter("isbn") != null ||
+               request.getParameter("genre") != null;
+    }
+
+    private void handleSearch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String title = request.getParameter("bookTitle");
+        String author = request.getParameter("author");
+        String isbn = request.getParameter("isbn");
+        String genre = request.getParameter("genre");
+
+        List<String> categories = Arrays.asList("Fiction", "Non Fiction");
+
+        try {
+            List<Book> books = BookDAO.searchBooks(title, author, isbn, genre);
+            request.setAttribute("books", books);
+            request.setAttribute("categories", categories);
+
+            request.setAttribute("searchTitle", title);
+            request.setAttribute("searchAuthor", author);
+            request.setAttribute("searchIsbn", isbn);
+            request.setAttribute("searchGenre", genre);
+
+            request.getRequestDispatcher("searchPage.jsp").forward(request, response);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Database error during search.");
+            request.getRequestDispatcher("searchPage.jsp").forward(request, response);
         }
     }
 
@@ -101,7 +134,6 @@ public class BookController extends HttpServlet {
                 if (bookId != null && !bookId.isEmpty()) {
                     deleteBook(request, response);
                 } else {
-                    // Optionally, handle error: bookId missing for delete
                     response.getWriter().write("Book ID is required for deletion.");
                 }
             } else {
@@ -116,7 +148,6 @@ public class BookController extends HttpServlet {
         }
     }
 
-    // 1. LIST all books
     private void listBooks(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
         List<Book> bookList = BookDAO.getAllBooks();
         request.setAttribute("books", bookList);
@@ -124,7 +155,6 @@ public class BookController extends HttpServlet {
         dispatcher.forward(request, response);
     }
 
-    // Show delete confirmation page
     private void showDeleteConfirmPage(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
         int bookId = Integer.parseInt(request.getParameter("bookId"));
         Book existingBook = BookDAO.getBookById(bookId);
@@ -133,17 +163,14 @@ public class BookController extends HttpServlet {
         dispatcher.forward(request, response);
     }
 
-    // 2. DELETE a book and redirect
     private void deleteBook(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         int bookId = Integer.parseInt(request.getParameter("bookId"));
         BookDAO.deleteBook(bookId);
         System.out.println("Book deleted successfully.");
-        // Set a session attribute to show a success message on the book list page
         request.getSession().setAttribute("deleteSuccess", true);
         response.sendRedirect(request.getContextPath() + "/BookController?action=list");
     }
 
-    // 3. SHOW edit form for a book
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
         int bookId = Integer.parseInt(request.getParameter("bookId"));
         Book existingBook = BookDAO.getBookById(bookId);
@@ -152,7 +179,6 @@ public class BookController extends HttpServlet {
         dispatcher.forward(request, response);
     }
 
-    // 4. ADD a new book with image
     private void addBook(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException, ServletException {
         String title = request.getParameter("title");
         String authorName = request.getParameter("authorName");
@@ -163,7 +189,6 @@ public class BookController extends HttpServlet {
         int publishYear = Integer.parseInt(request.getParameter("publishYear"));
         double price = Double.parseDouble(request.getParameter("price"));
 
-        // Optional fields
         String reserveIdStr = request.getParameter("reserveId");
         String fineIdStr = request.getParameter("fineId");
         Integer reserveId = (reserveIdStr != null && !reserveIdStr.isEmpty()) ? Integer.parseInt(reserveIdStr) : null;
@@ -181,22 +206,17 @@ public class BookController extends HttpServlet {
         book.setReserveId(reserveId);
         book.setFineId(fineId);
 
-        // Handle image upload
         Part filePart = request.getPart("image");
         if (filePart != null && filePart.getSize() > 0) {
             String fileName = getSubmittedFileName(filePart);
             String contentType = filePart.getContentType();
             InputStream inputStream = filePart.getInputStream();
-            
-            // Create BLOB from input stream
             Connection connection = connectionManager.getConnection();
             Blob blob = connection.createBlob();
             blob.setBytes(1, inputStream.readAllBytes());
-            
             book.setImage(blob);
             book.setImageFileName(fileName);
             book.setImageContentType(contentType);
-            
             inputStream.close();
             connection.close();
         }
@@ -206,70 +226,64 @@ public class BookController extends HttpServlet {
         response.sendRedirect("BookController?action=list");
     }
 
-    // update book
     private void updateBook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String bookIdStr = request.getParameter("bookId");
-        String title = request.getParameter("title");
-        String authorName = request.getParameter("authorName");
-        String synopsis = request.getParameter("synopsis");
-        String category = request.getParameter("category");
-        String isbnStr = request.getParameter("isbn");
-        String publisher = request.getParameter("publisher");
-        String publishYearStr = request.getParameter("publishYear");
-        String priceStr = request.getParameter("price");
 
-        if (bookIdStr == null || bookIdStr.isEmpty() ||
-            title == null || title.isEmpty() ||
-            authorName == null || authorName.isEmpty() ||
-            synopsis == null || synopsis.isEmpty() ||
-            category == null || category.isEmpty() ||
-            isbnStr == null || isbnStr.isEmpty() ||
-            publisher == null || publisher.isEmpty() ||
-            publishYearStr == null || publishYearStr.isEmpty() ||
-            priceStr == null || priceStr.isEmpty()) {
-            request.setAttribute("error", "All fields are required.");
+        if (bookIdStr == null || bookIdStr.isEmpty()) {
+            request.setAttribute("error", "Book ID is missing. Cannot update.");
             try {
-                if (bookIdStr != null && !bookIdStr.isEmpty()) {
-                    int bookId = Integer.parseInt(bookIdStr);
-                    Book book = BookDAO.getBookById(bookId);
-                    request.setAttribute("book", book);
-                }
-            } catch (Exception e) {}
-            request.getRequestDispatcher("editBook.jsp").forward(request, response);
+                listBooks(request, response);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             return;
         }
 
         try {
             int bookId = Integer.parseInt(bookIdStr);
-            int isbn = Integer.parseInt(isbnStr);
-            int publishYear = Integer.parseInt(publishYearStr);
-            double price = Double.parseDouble(priceStr);
-
             Book book = BookDAO.getBookById(bookId);
-            book.setTitle(title);
-            book.setAuthorName(authorName);
-            book.setSynopsis(synopsis);
-            book.setCategory(category);
-            book.setIsbn(isbn);
-            book.setPublisher(publisher);
-            book.setPublishYear(publishYear);
-            book.setPrice(price);
 
-            // Handle image upload
+            if (book == null) {
+                request.setAttribute("error", "Book with ID " + bookId + " not found.");
+                listBooks(request, response);
+                return;
+            }
+
+            String title = request.getParameter("title");
+            if (title != null && !title.isEmpty()) book.setTitle(title);
+
+            String authorName = request.getParameter("authorName");
+            if (authorName != null && !authorName.isEmpty()) book.setAuthorName(authorName);
+
+            String synopsis = request.getParameter("synopsis");
+            if (synopsis != null && !synopsis.isEmpty()) book.setSynopsis(synopsis);
+
+            String category = request.getParameter("category");
+            if (category != null && !category.isEmpty()) book.setCategory(category);
+
+            String isbnStr = request.getParameter("isbn");
+            if (isbnStr != null && !isbnStr.isEmpty()) book.setIsbn(Integer.parseInt(isbnStr));
+
+            String publisher = request.getParameter("publisher");
+            if (publisher != null && !publisher.isEmpty()) book.setPublisher(publisher);
+
+            String publishYearStr = request.getParameter("publishYear");
+            if (publishYearStr != null && !publishYearStr.isEmpty()) book.setPublishYear(Integer.parseInt(publishYearStr));
+
+            String priceStr = request.getParameter("price");
+            if (priceStr != null && !priceStr.isEmpty()) book.setPrice(Double.parseDouble(priceStr));
+
             Part filePart = request.getPart("image");
             if (filePart != null && filePart.getSize() > 0) {
                 String fileName = getSubmittedFileName(filePart);
                 String contentType = filePart.getContentType();
                 InputStream inputStream = filePart.getInputStream();
-
                 Connection connection = connectionManager.getConnection();
                 Blob blob = connection.createBlob();
                 blob.setBytes(1, inputStream.readAllBytes());
-
                 book.setImage(blob);
                 book.setImageFileName(fileName);
                 book.setImageContentType(contentType);
-
                 inputStream.close();
                 connection.close();
             }
@@ -278,12 +292,20 @@ public class BookController extends HttpServlet {
 
             request.setAttribute("updateSuccess", true);
             listBooks(request, response);
-        } catch (NumberFormatException | SQLException e) {
+
+        } catch (NumberFormatException e) {
             e.printStackTrace();
-            request.setAttribute("error", "Invalid input. Please check your entries.");
+            request.setAttribute("error", "Invalid number format. Please check your entries for ISBN, Year, and Price.");
             try {
-                int bookId = Integer.parseInt(bookIdStr);
-                Book book = BookDAO.getBookById(bookId);
+                Book book = BookDAO.getBookById(Integer.parseInt(bookIdStr));
+                request.setAttribute("book", book);
+            } catch (Exception ex) {}
+            request.getRequestDispatcher("editBook.jsp").forward(request, response);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Database error during update: " + e.getMessage());
+            try {
+                Book book = BookDAO.getBookById(Integer.parseInt(bookIdStr));
                 request.setAttribute("book", book);
             } catch (Exception ex) {}
             request.getRequestDispatcher("editBook.jsp").forward(request, response);
